@@ -35,7 +35,7 @@ function colorCycleNext(color) {
   return COLORS[next];
 }
 
-export function createBoard(boardEl, onCycle) {
+export function createBoard(boardEl, onCycle, onHover, onLeave) {
   boardEl.innerHTML = '';
   const cells = [];
 
@@ -52,6 +52,19 @@ export function createBoard(boardEl, onCycle) {
     btn.addEventListener('click', () => {
       const nextColor = colorCycleNext(btn.dataset.color);
       onCycle(i, nextColor);
+    });
+
+    btn.addEventListener('mouseenter', () => {
+      if (onHover) onHover(i);
+    });
+    btn.addEventListener('focus', () => {
+      if (onHover) onHover(i);
+    });
+    btn.addEventListener('mouseleave', () => {
+      if (onLeave) onLeave();
+    });
+    btn.addEventListener('blur', () => {
+      if (onLeave) onLeave();
     });
 
     cells.push(btn);
@@ -93,6 +106,44 @@ export function markRecommended(cells, index) {
 export function markLikelyRed(cells, index) {
   if (index < 0) return;
   cells[index].classList.add('likely-red');
+}
+
+function sortedDistribution(dist) {
+  return [...PLAYABLE_COLORS]
+    .map((color) => ({ color, p: dist[color] ?? 0 }))
+    .sort((a, b) => b.p - a.p);
+}
+
+export function renderHoverIndicatorEmpty(indicatorEl) {
+  indicatorEl.className = 'hover-indicator-body is-empty';
+  indicatorEl.innerHTML = 'Hover a cell to preview your input color or predicted distribution.';
+}
+
+export function renderHoverIndicatorInput(indicatorEl, index, color) {
+  indicatorEl.className = `hover-indicator-body color-${color}`;
+  indicatorEl.innerHTML = `
+    <div class="hover-title">${coordinateName(index)} input</div>
+    <div class="hover-color-label">${COLOR_LABEL[color]}</div>
+  `;
+}
+
+export function renderHoverIndicatorDistribution(indicatorEl, index, dist) {
+  const sorted = sortedDistribution(dist);
+  const segments = sorted
+    .filter((x) => x.p > 0)
+    .map((x) => `<span class="hover-seg seg-${x.color}" style="width:${(x.p * 100).toFixed(1)}%" title="${COLOR_LABEL[x.color]} ${fmtPct(x.p)}"></span>`)
+    .join('');
+  const labels = sorted
+    .slice(0, 3)
+    .map((x) => `<span>${COLOR_LABEL[x.color]} ${fmtPct(x.p)}</span>`)
+    .join('');
+
+  indicatorEl.className = 'hover-indicator-body';
+  indicatorEl.innerHTML = `
+    <div class="hover-title">${coordinateName(index)} predicted mix</div>
+    <div class="hover-stack">${segments || '<span class="hover-no-data">No distribution data</span>'}</div>
+    <div class="hover-legend-inline">${labels}</div>
+  `;
 }
 
 export function updateBadges(turnBadgeEl, hypothesesBadgeEl, turnsUsed, hypothesesCount) {

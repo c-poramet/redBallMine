@@ -2,9 +2,12 @@ import { COLOR_SCORE, MAX_TURNS } from './constants.js';
 import { generateHypotheses } from './hypotheses.js';
 import {
   bestNextMove,
+  bestMoveCandidates,
   cellInsights,
+  colorDistribution,
   filterHypotheses,
   mostLikelyRedCell,
+  mostLikelyRedCells,
   outcomeBranches,
   projectedSequence,
 } from './solver.js';
@@ -16,6 +19,9 @@ import {
   renderLegend,
   renderNoSolutions,
   renderResults,
+  renderHoverIndicatorDistribution,
+  renderHoverIndicatorEmpty,
+  renderHoverIndicatorInput,
   setCellState,
   setGridLabels,
   updateBadges,
@@ -32,6 +38,7 @@ const resultsArea = document.getElementById('resultsArea');
 const turnBadge = document.getElementById('turnBadge');
 const hypothesisBadge = document.getElementById('hypothesisBadge');
 const modeBadge = document.getElementById('modeBadge');
+const hoverIndicatorBody = document.getElementById('hoverIndicatorBody');
 const btnSettings = document.getElementById('btnSettings');
 const settingsPanel = document.getElementById('settingsPanel');
 const modeInputs = document.querySelectorAll('input[name="strategyMode"]');
@@ -39,34 +46,41 @@ const modeInputs = document.querySelectorAll('input[name="strategyMode"]');
 const observations = [];
 const observationIndexMap = new Map();
 let mode = 'score';
+let currentHypotheses = [...allHypotheses];
 
 renderLegend(legend);
-const cells = createBoard(boardGrid, handleCycleCell);
+const cells = createBoard(boardGrid, handleCycleCell, handleHoverCell, handleHoverLeave);
 setGridLabels(cells);
 updateBadges(turnBadge, hypothesisBadge, observations.length, allHypotheses.length);
 modeBadge.textContent = 'Mode: score';
+renderHoverIndicatorEmpty(hoverIndicatorBody);
 
-function refreshBoardRecommendation(idx = -1, likelyRedIdx = -1) {
+function refreshBoardRecommendation(bestIndices = [], likelyRedIndices = []) {
   clearRecommended(cells);
-  if (idx >= 0) {
+  for (const idx of bestIndices) {
     markRecommended(cells, idx);
   }
-  if (likelyRedIdx >= 0) {
-    markLikelyRed(cells, likelyRedIdx);
+  for (const idx of likelyRedIndices) {
+    markLikelyRed(cells, idx);
   }
+}
+
+function recomputeCurrentHypotheses() {
+  currentHypotheses = filterHypotheses(allHypotheses, observations);
 }
 
 function rebuildFromObservations() {
   for (let i = 0; i < cells.length; i += 1) {
     setCellState(cells, i, 'unknown');
   }
-  refreshBoardRecommendation(-1, -1);
+  refreshBoardRecommendation([], []);
 
   for (const obs of observations) {
     setCellState(cells, obs.index, obs.color);
   }
 
-  updateBadges(turnBadge, hypothesisBadge, observations.length, allHypotheses.length);
+  recomputeCurrentHypotheses();
+  updateBadges(turnBadge, hypothesisBadge, observations.length, currentHypotheses.length);
 }
 
 function handleCycleCell(index, color) {
@@ -91,8 +105,29 @@ function handleCycleCell(index, color) {
   }
 
   setCellState(cells, index, color);
-  refreshBoardRecommendation(-1, -1);
-  updateBadges(turnBadge, hypothesisBadge, observations.length, allHypotheses.length);
+  refreshBoardRecommendation([], []);
+  recomputeCurrentHypotheses();
+  updateBadges(turnBadge, hypothesisBadge, observations.length, currentHypotheses.length);
+}
+
+function handleHoverCell(index) {
+  const obsPos = observationIndexMap.get(index);
+  if (obsPos != null) {
+    renderHoverIndicatorInput(hoverIndicatorBody, index, observations[obsPos].color);
+    return;
+  }
+
+  if (!currentHypotheses.length) {
+    renderHoverIndicatorEmpty(hoverIndicatorBody);
+    return;
+  }
+
+  const dist = colorDistribution(currentHypotheses, index);
+  renderHoverIndicatorDistribution(hoverIndicatorBody, index, dist);
+}
+
+function handleHoverLeave() {
+  renderHoverIndicatorEmpty(hoverIndicatorBody);
 }
 
 btnSettings.addEventListener('click', () => {
@@ -118,7 +153,7 @@ for (const input of modeInputs) {
 }
 
 btnAnalyze.addEventListener('click', () => {
-  const currentHypotheses = filterHypotheses(allHypotheses, observations);
+  recomputeCurrentHypotheses();
 
   updateBadges(turnBadge, hypothesisBadge, observations.length, currentHypotheses.length);
 
@@ -129,13 +164,15 @@ btnAnalyze.addEventListener('click', () => {
   }
 
   const bestMove = bestNextMove(currentHypotheses, observations, mode);
+  const bestCandidates = bestMoveCandidates(currentHypotheses, observations, mode);
   if (!bestMove) {
-    refreshBoardRecommendation(-1, -1);
+    refreshBoardRecommendation([], []);
     renderNoSolutions(resultsArea, 'No moves left. All observed turns are already used.');
     return;
   }
 
   const likelyRed = mostLikelyRedCell(currentHypotheses);
+  const likelyRedGroup = mostLikelyRedCells(currentHypotheses);
   const insights = cellInsights(currentHypotheses);
   const branches = outcomeBranches(currentHypotheses, observations, bestMove, mode);
   const sequence = projectedSequence(currentHypotheses, observations, mode);
@@ -160,7 +197,10 @@ btnAnalyze.addEventListener('click', () => {
     scoreSummary,
   });
 
-  refreshBoardRecommendation(bestMove.index, likelyRed.index);
+  refreshBoardRecommendation(
+    bestCandidates.map((c) => c.index),
+    likelyRedGroup.indices,
+  );
 });
 
 btnUndo.addEventListener('click', () => {
@@ -171,6 +211,7 @@ btnUndo.addEventListener('click', () => {
   observations.forEach((obs, i) => observationIndexMap.set(obs.index, i));
 
   rebuildFromObservations();
+  renderHoverIndicatorEmpty(hoverIndicatorBody);
 });
 
 btnReset.addEventListener('click', () => {
@@ -183,4 +224,5 @@ btnReset.addEventListener('click', () => {
     </div>
   `;
   rebuildFromObservations();
+  renderHoverIndicatorEmpty(hoverIndicatorBody);
 });

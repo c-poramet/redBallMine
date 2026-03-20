@@ -12,6 +12,10 @@ function objectiveScore(mode, expectedScoreValue, redProb) {
   return expectedScoreValue;
 }
 
+function almostEqual(a, b, eps = 1e-9) {
+  return Math.abs(a - b) <= eps;
+}
+
 function matchesObservation(board, observations) {
   return observations.every((obs) => board[obs.index] === obs.color);
 }
@@ -89,55 +93,66 @@ export function cellInsights(hypotheses) {
 }
 
 export function bestNextMove(hypotheses, observations, mode = 'score') {
-  const observed = new Set(observations.map((o) => o.index));
+  const candidates = bestMoveCandidates(hypotheses, observations, mode);
+  if (!candidates.length) {
+    return null;
+  }
 
-  let bestIndex = -1;
-  let bestObjective = -Infinity;
-  let bestEV = -Infinity;
-  let bestRedProb = 0;
+  // Deterministic representative for display when multiple cells tie.
+  candidates.sort((a, b) => b.expectedScore - a.expectedScore || b.redProbability - a.redProbability || a.index - b.index);
+  return candidates[0];
+}
+
+export function bestMoveCandidates(hypotheses, observations, mode = 'score') {
+  const observed = new Set(observations.map((o) => o.index));
+  const scored = [];
 
   for (let i = 0; i < CELL_COUNT; i += 1) {
     if (observed.has(i)) continue;
     const ev = expectedValue(hypotheses, i);
     const redProb = colorDistribution(hypotheses, i).red;
     const objective = objectiveScore(mode, ev, redProb);
-    if (
-      objective > bestObjective ||
-      (objective === bestObjective && ev > bestEV) ||
-      (objective === bestObjective && ev === bestEV && redProb > bestRedProb)
-    ) {
-      bestIndex = i;
-      bestObjective = objective;
-      bestEV = ev;
-      bestRedProb = redProb;
-    }
+    scored.push({
+      index: i,
+      coordinate: coordinateName(i),
+      mode,
+      objective,
+      expectedScore: ev,
+      redProbability: redProb,
+      distribution: colorDistribution(hypotheses, i),
+    });
   }
 
-  if (bestIndex < 0) {
-    return null;
+  if (!scored.length) {
+    return [];
   }
 
-  return {
-    index: bestIndex,
-    coordinate: coordinateName(bestIndex),
-    mode,
-    objective: bestObjective,
-    expectedScore: bestEV,
-    redProbability: bestRedProb,
-    distribution: colorDistribution(hypotheses, bestIndex),
-  };
+  const maxObjective = Math.max(...scored.map((s) => s.objective));
+  return scored.filter((s) => almostEqual(s.objective, maxObjective));
 }
 
 export function mostLikelyRedCell(hypotheses) {
+  const group = mostLikelyRedCells(hypotheses);
+  return {
+    index: group.indices[0] ?? 0,
+    coordinate: coordinateName(group.indices[0] ?? 0),
+    probability: group.probability,
+    all: group.all,
+  };
+}
+
+export function mostLikelyRedCells(hypotheses) {
   const probs = redProbabilities(hypotheses);
-  let idx = 0;
-  for (let i = 1; i < probs.length; i += 1) {
-    if (probs[i] > probs[idx]) idx = i;
+  const max = Math.max(...probs, 0);
+  const indices = [];
+  for (let i = 0; i < probs.length; i += 1) {
+    if (almostEqual(probs[i], max)) {
+      indices.push(i);
+    }
   }
   return {
-    index: idx,
-    coordinate: coordinateName(idx),
-    probability: probs[idx],
+    indices,
+    probability: max,
     all: probs,
   };
 }
