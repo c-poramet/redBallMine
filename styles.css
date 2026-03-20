@@ -654,12 +654,12 @@ body {
 }
 
 .placeholder-state {
-  max-width: 640px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 24px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--surface);
+  padding: 8px 2px 2px;
+  border-radius: 0;
+  border: none;
+  background: transparent;
 }
 
 .placeholder-badge {
