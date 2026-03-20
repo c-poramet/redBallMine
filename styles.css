@@ -759,6 +759,56 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.placeholder-row.rule-red kbd,
+.placeholder-row.rule-red span {
+  color: #ffdede;
+}
+
+.placeholder-row.rule-red kbd {
+  border-color: rgba(201, 74, 74, 0.6);
+  background: rgba(201, 74, 74, 0.2);
+}
+
+.placeholder-row.rule-orange kbd,
+.placeholder-row.rule-orange span {
+  color: #ffe6d5;
+}
+
+.placeholder-row.rule-orange kbd {
+  border-color: rgba(201, 127, 80, 0.6);
+  background: rgba(201, 127, 80, 0.2);
+}
+
+.placeholder-row.rule-yellow kbd,
+.placeholder-row.rule-yellow span {
+  color: #fff7cb;
+}
+
+.placeholder-row.rule-yellow kbd {
+  border-color: rgba(200, 182, 83, 0.6);
+  background: rgba(200, 182, 83, 0.2);
+}
+
+.placeholder-row.rule-green kbd,
+.placeholder-row.rule-green span {
+  color: #e6ffe3;
+}
+
+.placeholder-row.rule-green kbd {
+  border-color: rgba(108, 169, 101, 0.6);
+  background: rgba(108, 169, 101, 0.2);
+}
+
+.placeholder-row.rule-teal-blue span {
+  color: #dcfffc;
+}
+
+.placeholder-row.rule-teal-blue kbd {
+  color: #dff3ff;
+  border-color: rgba(79, 110, 201, 0.6);
+  background: linear-gradient(90deg, rgba(77, 167, 161, 0.2), rgba(79, 110, 201, 0.2));
+}
+
 .placeholder-tips {
   margin: 0;
   padding-left: 18px;

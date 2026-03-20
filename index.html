@@ -87,7 +87,7 @@
           </div>
         </div>
 
-        <p class="help-text">Rules: 1 red (not center), 2 orange orthogonally adjacent to red, 3 yellow on diagonals from red, 4 green in red's row or column, teal on red lines (row/column/diagonals), blue everywhere else. Click a cell to cycle: unknown, blue, teal, green, yellow, orange, red.</p>
+        <p class="help-text">Click a cell to cycle color: unknown, blue, teal, green, yellow, orange, red.</p>
 
         <div class="legend" id="legend"></div>
 
@@ -114,6 +114,17 @@
                 <div class="placeholder-row"><kbd>Enter</kbd><span>Analyze from current observations.</span></div>
                 <div class="placeholder-row"><kbd>Ctrl + Z</kbd><span>Undo your most recent observed cell.</span></div>
                 <div class="placeholder-row"><kbd>Space</kbd><span>Reset and start a new run.</span></div>
+              </div>
+            </section>
+
+            <section class="placeholder-section">
+              <h4>Rules</h4>
+              <div class="placeholder-rows">
+                <div class="placeholder-row rule-red"><kbd>Red</kbd><span>Exactly 1 red cell, and it cannot be the center cell.</span></div>
+                <div class="placeholder-row rule-orange"><kbd>Orange</kbd><span>Exactly 2 cells orthogonally adjacent to red.</span></div>
+                <div class="placeholder-row rule-yellow"><kbd>Yellow</kbd><span>Exactly 3 cells on red's diagonals.</span></div>
+                <div class="placeholder-row rule-green"><kbd>Green</kbd><span>Exactly 4 cells in red's row or column.</span></div>
+                <div class="placeholder-row rule-teal-blue"><kbd>Teal / Blue</kbd><span>Teal is on red lines (row/column/diagonals); all other cells are blue.</span></div>
               </div>
             </section>
 
