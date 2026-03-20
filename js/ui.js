@@ -190,16 +190,6 @@ export function renderResults(resultsArea, analysis) {
       </div>
 
       <div class="card">
-        <h3 class="section-label">Score Outlook</h3>
-        <div class="quick-stats">
-          <span><em>Accumulated</em><strong>${fmtNum(scoreSummary.accumulated)}</strong></span>
-          <span><em>Expected next</em><strong>${fmtNum(scoreSummary.expectedNext)}</strong></span>
-          <span><em>Expected remaining</em><strong>${fmtNum(scoreSummary.expectedRemaining)}</strong></span>
-          <span><em>Projected total</em><strong>${fmtNum(scoreSummary.projectedTotal)}</strong></span>
-        </div>
-      </div>
-
-      <div class="card">
         <h3 class="section-label">Color Outcome At ${bestMove.coordinate}</h3>
         <table class="table compact-table">
           <tbody>${buildDistributionRows(bestMove)}</tbody>
@@ -214,6 +204,16 @@ export function renderResults(resultsArea, analysis) {
       <div class="card">
         <h3 class="section-label">Per-Cell Likelihood Details</h3>
         <div class="insight-grid">${buildInsightGrid(insights)}</div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-label">Score Outlook</h3>
+        <div class="quick-stats">
+          <span><em>Accumulated</em><strong>${fmtNum(scoreSummary.accumulated)}</strong></span>
+          <span><em>Expected next</em><strong>${fmtNum(scoreSummary.expectedNext)}</strong></span>
+          <span><em>Expected remaining</em><strong>${fmtNum(scoreSummary.expectedRemaining)}</strong></span>
+          <span><em>Projected total</em><strong>${fmtNum(scoreSummary.projectedTotal)}</strong></span>
+        </div>
       </div>
 
       <div class="card">
