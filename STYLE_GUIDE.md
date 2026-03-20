@@ -19,6 +19,7 @@ A complete reference for the visual design system, layout patterns, components, 
 11. [Responsive Considerations](#11-responsive-considerations)
 12. [Math Notation & KaTeX Compatibility](#12-math-notation--katex-compatibility)
 13. [How to Reuse in Another Project](#13-how-to-reuse-in-another-project)
+14. [Integrated Help Panel, Indicators, Footer, Tooltips](#14-integrated-help-panel-indicators-footer-tooltips)
 
 ---
 
@@ -219,7 +220,7 @@ Use **`Space Mono`** for anything derived from data: a score, a computed count, 
 
 ## 4. Page-Level Layout
 
-The layout is three regions: a fixed full-width header, a viewport-locked main, and a fixed footer.
+The layout is three regions: a fixed full-width header, a viewport-locked main work area, and a non-floating footer docked at the bottom of the app shell.
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -232,7 +233,7 @@ The layout is three regions: a fixed full-width header, a viewport-locked main, 
 │         └── .right-panel (flex: 1, scrolls inside) │
 │                                                     │
 ├─────────────────────────────────────────────────────┤
-│ .footer (fixed bottom-left)                         │
+│ .footer (docked bottom strip, non-floating)         │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -269,6 +270,23 @@ The layout is three regions: a fixed full-width header, a viewport-locked main, 
 | `.header-icon-group` | Flex group of `.icon-btn` — settings, debug, etc. |
 | `.header-tags` | Flex group of `.setting-tag` — active state indicators |
 | `.guesses-left-badge` | Accent-colored count badge — pushed to right with `margin-left: auto` |
+
+### Non-Moving Indicator Rail
+
+Status indicators must remain visually stable while the user interacts with the board. Use a fixed-position header rail for all passive indicators (turns used, hypothesis count, mode, remaining guesses).
+
+```css
+.header { position: fixed; top: 0; left: 0; right: 0; }
+.header-tags { display: flex; gap: 6px; margin-left: 10px; }
+.guesses-left-badge { margin-left: auto; }
+```
+
+Rules:
+
+1. Indicator chips are passive (`cursor: default`) and never shift location based on state value changes.
+2. Keep indicator width growth predictable by using monospace (`Space Mono`) and concise labels.
+3. Update text content only; do not animate position, scale, or reorder.
+4. Place actionable controls (settings buttons) outside the indicator rail so status and actions are visually distinct.
 
 ### `.main`
 
@@ -328,14 +346,17 @@ The right panel is the only element in the page that scrolls. Apply a styled thi
 
 ```css
 .footer {
-  position: fixed;
-  bottom: 0; left: 0;
-  padding: 14px 28px;
-  z-index: 10;
+  height: 42px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  background: rgba(17,17,17,0.55);
 }
 ```
 
-Contains `.footer-credit` — 11px monospace dim text. Small and unobtrusive.
+Contains `.footer-credit` — monospace dim text, centered and unobtrusive. Because the footer sits in normal flow (`margin-top: auto`) instead of fixed overlay, it never floats above panel content and does not steal pointer space from interactive UI.
 
 ---
 
@@ -377,16 +398,22 @@ Used as a section header inside a panel. Small, quiet, all-caps monospace. Secti
 
 ### Placeholder State
 
-When a panel region has no content yet:
+When a panel region has no computed output yet, use an integrated help panel that sits on the same panel surface (no extra floating card chrome).
 
 ```css
-.placeholder-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 20px; gap: 10px; }
-.placeholder-icon  { width: 48px; height: 48px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 6px; }
-.placeholder-text  { font-size: 13px; color: var(--text-sec); text-align: center; line-height: 1.55; }
-.placeholder-sub   { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); text-align: center; letter-spacing: 0.04em; }
+.placeholder-state { max-width: 720px; margin: 0 auto; padding: 8px 2px 2px; background: transparent; border: none; }
+.placeholder-badge { width: fit-content; margin: 0 auto; padding: 8px 14px; border: 1px solid var(--border-md); border-radius: 10px; font-family: var(--font-mono); }
+.placeholder-section + .placeholder-section { border-top: 1px solid var(--border); padding-top: 16px; }
+.placeholder-row { display: grid; grid-template-columns: 108px 1fr; gap: 12px; }
+.placeholder-row kbd { min-height: 26px; border: 1px solid var(--border-md); border-radius: 6px; }
 ```
 
-A centered icon box above two lines of copy. The icon is a rounded square, not a circle.
+Pattern rules:
+
+1. Do not nest the default panel inside another elevated card unless that screen explicitly needs modal emphasis.
+2. Use a two-column grid row (`label` + `description`) for controls and mode descriptions so copy aligns vertically.
+3. Keep a separate `Tips` list (bullets), not mixed with key rows, to preserve scannability.
+4. Keep the panel informational and non-blocking: it should transition away naturally when real results render.
 
 ### Loading State
 
@@ -651,6 +678,32 @@ An accent-colored count badge pushed to the far right of the header:
 ```
 
 The semi-transparent accent tint matches the chip pattern: state color at ~10% opacity background, ~20% border.
+
+### Inline Tooltip / Hover Indicator (`.hover-indicator`)
+
+Use inline contextual tooltips embedded in the input panel instead of floating browser tooltips for prediction-heavy UIs.
+
+```css
+.hover-indicator-body {
+  border: 1px solid var(--border-md);
+  border-radius: 8px;
+  height: 86px;
+  padding: 8px 10px;
+  background: var(--surface);
+  display: grid;
+  grid-template-rows: 18px 20px 20px;
+  row-gap: 6px;
+}
+.hover-indicator-body.is-empty { color: var(--text-dim); font-family: var(--font-mono); }
+```
+
+Interaction rules:
+
+1. Empty state copy must be visible by default, before any hover.
+2. Hover/focus on an input cell swaps body content with contextual prediction data.
+3. Tooltip lives in layout flow (no absolute floating popover), so it does not cover actionable controls.
+4. Mirror `mouseenter` and keyboard `focus` behavior for accessibility parity.
+5. Reset to empty state on `mouseleave` and `blur`.
 
 ### Text Input (`.word-input`)
 
@@ -1136,6 +1189,37 @@ The CSS is self-contained and requires no external frameworks. To adapt it:
 7.  .panel    (base surface)
 8.  State indicator components (tiles, chips, banners, bars)
 9.  Interactive components     (buttons, inputs, toggles)
+
+---
+
+## 14. Integrated Help Panel, Indicators, Footer, Tooltips
+
+Use this checklist when applying this style guide to a new project.
+
+### A. Default Help Panel Should Blend In
+
+1. Render default instructional content on the existing right/main panel surface.
+2. Avoid secondary card backgrounds, heavy shadows, or extra borders around the whole help content.
+3. Use section dividers and row-grid alignment for structure instead of container chrome.
+
+### B. Non-Moving Indicators
+
+1. Keep status indicators in the fixed header rail.
+2. Treat indicators as passive readouts, not animated widgets.
+3. Update text values only; avoid movement, reflow jumps, or order changes while data updates.
+
+### C. Footer Behavior
+
+1. Prefer a docked footer strip in document flow (`margin-top: auto`) over fixed overlay.
+2. Keep footer informational and low contrast.
+3. Ensure footer does not overlap controls on small screens.
+
+### D. Tooltip Behavior
+
+1. Prefer inline hover-indicator blocks for rich predictive context.
+2. Keep tooltip height stable between empty and data states to prevent layout jump.
+3. Support hover and keyboard focus equally.
+4. Use semantic color only when tied to state meaning.
 10. Side settings squeeze layout
 11. Animations (@keyframes + utility classes)
 12. Responsive (@media)
