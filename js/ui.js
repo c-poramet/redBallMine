@@ -182,8 +182,10 @@ function buildBestGuessCards(candidates) {
 function buildHeatmap(likelyRed) {
   const max = Math.max(...likelyRed.all, 0.00001);
   return likelyRed.all.map((p, idx) => {
-    const intensity = p / max;
-    const alpha = (0.15 + (0.65 * intensity)).toFixed(3);
+    const relative = p / max;
+    // Non-linear boost keeps lower non-zero probabilities visually present.
+    const boosted = relative > 0 ? Math.pow(relative, 0.45) : 0;
+    const alpha = (p > 0 ? (0.22 + (0.58 * boosted)) : 0.12).toFixed(3);
     return `
       <div class="heat-cell" style="background:rgba(201,74,74,${alpha})">
         <span class="heat-coord">${coordinateName(idx)}</span>
