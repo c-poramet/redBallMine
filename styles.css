@@ -575,15 +575,15 @@ body {
 .fill-red { background: var(--clr-red); }
 
 .heatmap-grid {
-  margin-top: 12px;
+  margin-top: 10px;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 4px;
+  gap: 5px;
 }
 
 .heat-cell {
   border: 1px solid rgba(201, 74, 74, 0.35);
-  border-radius: 7px;
+  border-radius: 8px;
   aspect-ratio: 1 / 1;
   display: flex;
   flex-direction: column;
@@ -606,6 +606,7 @@ body {
 }
 
 .insight-grid {
+  margin-top: 10px;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 5px;
