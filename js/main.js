@@ -299,30 +299,37 @@ btnReset.addEventListener('click', () => {
   observationIndexMap.clear();
   resultsArea.innerHTML = `
     <div class="placeholder-state">
-      <div class="placeholder-heading">Red Ball Mine Solver</div>
-      <p class="placeholder-text">Click cells to set observed colors, then click <strong>Analyze Best Move</strong>.</p>
+      <div class="placeholder-badge">RED BALL MINE SOLVER</div>
+      <p class="placeholder-text">Click cells to set observed colors, then click <strong>Analyze</strong>.</p>
       <p class="placeholder-meta">adaptive expected value engine</p>
-      <div class="placeholder-grid">
-        <section>
-          <h4>Controls</h4>
-          <p><kbd>Click Cell</kbd> Cycle observed color for that board position.</p>
-          <p><kbd>Analyze</kbd> Compute best candidate move from current observations.</p>
-          <p><kbd>Undo</kbd> Remove your most recent observed cell.</p>
-          <p><kbd>Reset</kbd> Clear all observations and start a new run.</p>
-        </section>
-        <section>
-          <h4>Modes</h4>
-          <p><kbd>Score</kbd> Max expected points for the next turn.</p>
-          <p><kbd>Red Hunt</kbd> Max chance of hitting red immediately.</p>
-          <p><kbd>Hybrid</kbd> Blend expected score and red-hit chance.</p>
-        </section>
-        <section>
-          <h4>Tips</h4>
-          <p>Hover any cell to preview predicted color distribution.</p>
-          <p>Use <strong>Hybrid</strong> when you want balanced score and red discovery.</p>
-          <p>At 5 guesses, the solver auto-reveals final result and run ranking.</p>
-        </section>
-      </div>
+
+      <section class="placeholder-section">
+        <h4>Controls</h4>
+        <div class="placeholder-rows">
+          <div class="placeholder-row"><kbd>Click Cell</kbd><span>Cycle observed color for that board position.</span></div>
+          <div class="placeholder-row"><kbd>Analyze</kbd><span>Compute best candidate move from current observations.</span></div>
+          <div class="placeholder-row"><kbd>Undo</kbd><span>Remove your most recent observed cell.</span></div>
+          <div class="placeholder-row"><kbd>Reset</kbd><span>Clear all observations and start a new run.</span></div>
+        </div>
+      </section>
+
+      <section class="placeholder-section">
+        <h4>Modes</h4>
+        <div class="placeholder-rows">
+          <div class="placeholder-row"><kbd>Score</kbd><span>Max expected points for the next turn.</span></div>
+          <div class="placeholder-row"><kbd>Red Hunt</kbd><span>Max chance of hitting red immediately.</span></div>
+          <div class="placeholder-row"><kbd>Hybrid</kbd><span>Blend expected score and red-hit chance.</span></div>
+        </div>
+      </section>
+
+      <section class="placeholder-section">
+        <h4>Tips</h4>
+        <ul class="placeholder-tips">
+          <li>Hover any cell to preview predicted color distribution.</li>
+          <li>Use <strong>Hybrid</strong> when you want balanced score and red discovery.</li>
+          <li>At 5 guesses, the solver auto-reveals final result and run ranking.</li>
+        </ul>
+      </section>
     </div>
   `;
   rebuildFromObservations();
