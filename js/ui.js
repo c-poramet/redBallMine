@@ -17,6 +17,18 @@ function fmtNum(n) {
   return Number.isFinite(n) ? n.toFixed(3) : '--';
 }
 
+function colorBase(color) {
+  const map = {
+    blue: '79,110,201',
+    teal: '77,167,161',
+    green: '108,169,101',
+    yellow: '200,182,83',
+    orange: '201,127,80',
+    red: '201,74,74',
+  };
+  return map[color] || '255,255,255';
+}
+
 function colorCycleNext(color) {
   const idx = COLORS.indexOf(color);
   const next = (idx + 1) % COLORS.length;
@@ -118,7 +130,7 @@ function buildHeatmap(likelyRed) {
 
 function buildInsightGrid(insights) {
   return insights.map((info) => `
-    <div class="insight-cell insight-${info.likelyColor}">
+    <div class="insight-cell insight-${info.likelyColor}" style="background: rgba(${colorBase(info.likelyColor)}, ${(0.08 + (0.52 * info.likelyProb)).toFixed(3)});">
       <span class="insight-coord">${info.coordinate}</span>
       <span class="insight-color">${COLOR_LABEL[info.likelyColor]}</span>
     </div>
@@ -130,9 +142,14 @@ function buildBranchRows(branches) {
     return '<tr><td colspan="4">No valid branches from this state.</td></tr>';
   }
   return branches.map((b) => `
-    <tr>
-      <td>${COLOR_LABEL[b.color]}</td>
-      <td>${fmtPct(b.probability)}</td>
+    <tr class="branch-row branch-${b.color}">
+      <td><span class="branch-chip branch-chip-${b.color}">${COLOR_LABEL[b.color]}</span></td>
+      <td>
+        <div class="prob-row">
+          <div class="prob-track"><div class="prob-fill fill-${b.color}" style="width:${(b.probability * 100).toFixed(1)}%"></div></div>
+          <span>${fmtPct(b.probability)}</span>
+        </div>
+      </td>
       <td>${b.survivors.toLocaleString()}</td>
       <td>${b.nextMove ? b.nextMove.coordinate : '--'}</td>
     </tr>
@@ -141,12 +158,22 @@ function buildBranchRows(branches) {
 
 function buildSequenceRows(sequence) {
   if (!sequence.length) {
-    return '<li>No remaining turns available.</li>';
+    return '<div class="sequence-empty">No remaining turns available.</div>';
   }
 
-  return sequence.map((s) => (
-    `<li><strong>Turn ${s.turn}</strong> click ${s.coordinate} (EV ${fmtNum(s.expectedScore)}), likely result ${COLOR_LABEL[s.mostLikelyOutcome]}, red chance ${fmtPct(s.redProbability)}</li>`
-  )).join('');
+  return sequence.map((s) => `
+    <div class="sequence-step outcome-${s.mostLikelyOutcome}">
+      <div class="sequence-top">
+        <span class="sequence-turn">Turn ${s.turn}</span>
+        <span class="sequence-cell">${s.coordinate}</span>
+      </div>
+      <div class="sequence-meta">
+        <span>EV ${fmtNum(s.expectedScore)}</span>
+        <span>Likely ${COLOR_LABEL[s.mostLikelyOutcome]}</span>
+        <span>Red ${fmtPct(s.redProbability)}</span>
+      </div>
+    </div>
+  `).join('');
 }
 
 export function renderNoSolutions(resultsArea, msg) {
@@ -224,9 +251,9 @@ export function renderResults(resultsArea, analysis) {
         </table>
       </div>
 
-      <div class="card">
+      <div class="card card-sequence">
         <h3 class="section-label">Projected Sequence</h3>
-        <ol class="sequence-list">${buildSequenceRows(sequence)}</ol>
+        <div class="sequence-track">${buildSequenceRows(sequence)}</div>
         <p class="subtext">${observations.length ? observations.map((o) => `${coordinateName(o.index)}=${COLOR_LABEL[o.color]}`).join(' · ') : 'No observed cells yet'}</p>
       </div>
     </div>

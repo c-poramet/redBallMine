@@ -428,6 +428,10 @@ body {
   grid-column: auto;
 }
 
+.card-sequence {
+  grid-column: 1 / -1;
+}
+
 .hero-grid {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
@@ -615,7 +619,6 @@ body {
 .insight-cell {
   border: 1px solid var(--border-md);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
   padding: 6px;
   aspect-ratio: 1 / 1;
   display: flex;
@@ -635,6 +638,7 @@ body {
   font-family: var(--font-mono);
   font-size: var(--fs-sm);
   color: var(--text-pri);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
 }
 
 .insight-blue { border-color: rgba(79, 110, 201, 0.35); }
@@ -644,17 +648,101 @@ body {
 .insight-orange { border-color: rgba(201, 127, 80, 0.35); }
 .insight-red { border-color: rgba(201, 74, 74, 0.45); }
 
-.sequence-list {
-  margin: 0;
-  padding-left: 18px;
-  color: var(--text-sec);
-  font-size: var(--fs-sm);
-  line-height: 1.6;
+.branch-row td {
+  transition: background var(--dur-fast) var(--ease-standard);
 }
 
-.sequence-list strong {
-  color: var(--text-pri);
+.branch-row td:first-child {
+  border-left: 2px solid transparent;
+}
+
+.branch-blue td:first-child { border-left-color: var(--clr-blue); }
+.branch-teal td:first-child { border-left-color: var(--clr-teal); }
+.branch-green td:first-child { border-left-color: var(--clr-green); }
+.branch-yellow td:first-child { border-left-color: var(--clr-yellow); }
+.branch-orange td:first-child { border-left-color: var(--clr-orange); }
+.branch-red td:first-child { border-left-color: var(--clr-red); }
+
+.branch-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--border-md);
+  padding: 2px 8px;
   font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+.branch-chip-blue { color: #dfe7ff; border-color: rgba(79, 110, 201, 0.45); background: rgba(79, 110, 201, 0.2); }
+.branch-chip-teal { color: #ddfbf8; border-color: rgba(77, 167, 161, 0.45); background: rgba(77, 167, 161, 0.2); }
+.branch-chip-green { color: #e5ffe2; border-color: rgba(108, 169, 101, 0.45); background: rgba(108, 169, 101, 0.2); }
+.branch-chip-yellow { color: #fff8c8; border-color: rgba(200, 182, 83, 0.45); background: rgba(200, 182, 83, 0.2); }
+.branch-chip-orange { color: #ffe6d3; border-color: rgba(201, 127, 80, 0.45); background: rgba(201, 127, 80, 0.2); }
+.branch-chip-red { color: #ffdede; border-color: rgba(201, 74, 74, 0.5); background: rgba(201, 74, 74, 0.2); }
+
+.sequence-track {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.sequence-step {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px;
+}
+
+.sequence-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sequence-turn {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+
+.sequence-cell {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-pri);
+  border-radius: 6px;
+  border: 1px solid var(--border-md);
+  padding: 2px 6px;
+}
+
+.sequence-meta {
+  display: grid;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-sec);
+}
+
+.outcome-blue { border-color: rgba(79, 110, 201, 0.45); background: rgba(79, 110, 201, 0.12); }
+.outcome-teal { border-color: rgba(77, 167, 161, 0.45); background: rgba(77, 167, 161, 0.12); }
+.outcome-green { border-color: rgba(108, 169, 101, 0.45); background: rgba(108, 169, 101, 0.12); }
+.outcome-yellow { border-color: rgba(200, 182, 83, 0.45); background: rgba(200, 182, 83, 0.12); }
+.outcome-orange { border-color: rgba(201, 127, 80, 0.45); background: rgba(201, 127, 80, 0.12); }
+.outcome-red { border-color: rgba(201, 74, 74, 0.5); background: rgba(201, 74, 74, 0.13); }
+
+.sequence-empty {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+  padding: 8px 0;
+}
+
+.subtext {
+  margin-top: 10px;
+  color: var(--text-sec);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
 }
 
 .warn {
@@ -716,6 +804,10 @@ body {
   }
 
   .card-hero {
+    grid-column: auto;
+  }
+
+  .card-sequence {
     grid-column: auto;
   }
 
