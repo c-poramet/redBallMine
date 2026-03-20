@@ -117,9 +117,9 @@ function sortedDistribution(dist) {
 export function renderHoverIndicatorEmpty(indicatorEl) {
   indicatorEl.className = 'hover-indicator-body is-empty';
   indicatorEl.innerHTML = `
-    <div class="hover-row hover-row-1">Hover a cell</div>
-    <div class="hover-row hover-row-2">for input color or predicted mix</div>
-    <div class="hover-row hover-row-3">Enter Analyze · Ctrl+Z Undo · Space Reset</div>
+    <div class="hover-row hover-row-1">Hover indicator</div>
+    <div class="hover-row hover-row-2">&nbsp;</div>
+    <div class="hover-row hover-row-3">&nbsp;</div>
   `;
 }
 
