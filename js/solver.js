@@ -1,6 +1,17 @@
 import { CELL_COUNT, COLOR_SCORE, MAX_TURNS, PLAYABLE_COLORS } from './constants.js';
 import { coordinateName } from './geometry.js';
 
+function objectiveScore(mode, expectedScoreValue, redProb) {
+  if (mode === 'red') {
+    return redProb;
+  }
+  if (mode === 'hybrid') {
+    const evNorm = (expectedScoreValue - 1) / 5;
+    return (0.55 * evNorm) + (0.45 * redProb);
+  }
+  return expectedScoreValue;
+}
+
 function matchesObservation(board, observations) {
   return observations.every((obs) => board[obs.index] === obs.color);
 }
@@ -54,10 +65,11 @@ export function redProbabilities(hypotheses) {
   return probs;
 }
 
-export function bestNextMove(hypotheses, observations) {
+export function bestNextMove(hypotheses, observations, mode = 'score') {
   const observed = new Set(observations.map((o) => o.index));
 
   let bestIndex = -1;
+  let bestObjective = -Infinity;
   let bestEV = -Infinity;
   let bestRedProb = 0;
 
@@ -65,8 +77,14 @@ export function bestNextMove(hypotheses, observations) {
     if (observed.has(i)) continue;
     const ev = expectedValue(hypotheses, i);
     const redProb = colorDistribution(hypotheses, i).red;
-    if (ev > bestEV || (ev === bestEV && redProb > bestRedProb)) {
+    const objective = objectiveScore(mode, ev, redProb);
+    if (
+      objective > bestObjective ||
+      (objective === bestObjective && ev > bestEV) ||
+      (objective === bestObjective && ev === bestEV && redProb > bestRedProb)
+    ) {
       bestIndex = i;
+      bestObjective = objective;
       bestEV = ev;
       bestRedProb = redProb;
     }
@@ -79,6 +97,8 @@ export function bestNextMove(hypotheses, observations) {
   return {
     index: bestIndex,
     coordinate: coordinateName(bestIndex),
+    mode,
+    objective: bestObjective,
     expectedScore: bestEV,
     redProbability: bestRedProb,
     distribution: colorDistribution(hypotheses, bestIndex),
@@ -99,14 +119,14 @@ export function mostLikelyRedCell(hypotheses) {
   };
 }
 
-export function outcomeBranches(hypotheses, observations, bestMove) {
+export function outcomeBranches(hypotheses, observations, bestMove, mode = 'score') {
   const branches = [];
   for (const color of PLAYABLE_COLORS) {
     const nextObs = [...observations, { index: bestMove.index, color }];
     const survivors = filterHypotheses(hypotheses, nextObs);
     if (survivors.length === 0) continue;
 
-    const nextBest = bestNextMove(survivors, nextObs);
+    const nextBest = bestNextMove(survivors, nextObs, mode);
     branches.push({
       color,
       probability: bestMove.distribution[color],
@@ -119,14 +139,14 @@ export function outcomeBranches(hypotheses, observations, bestMove) {
   return branches;
 }
 
-export function projectedSequence(hypotheses, observations) {
+export function projectedSequence(hypotheses, observations, mode = 'score') {
   const out = [];
   let currentHypotheses = hypotheses;
   let currentObs = [...observations];
   const remainingTurns = Math.max(0, MAX_TURNS - observations.length);
 
   for (let step = 0; step < remainingTurns; step += 1) {
-    const move = bestNextMove(currentHypotheses, currentObs);
+    const move = bestNextMove(currentHypotheses, currentObs, mode);
     if (!move) break;
 
     const dist = move.distribution;

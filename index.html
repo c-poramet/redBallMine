@@ -15,13 +15,53 @@
     <span class="header-dot" aria-hidden="true"></span>
     <span class="header-sub">adaptive expected value engine</span>
 
+    <button class="icon-btn" id="btnSettings" aria-label="Open strategy settings" title="Settings">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+        <rect x="0" y="1.5" width="5" height="1.5" rx="0.5"/>
+        <rect x="7" y="1.5" width="5" height="1.5" rx="0.5"/>
+        <circle cx="6" cy="2.25" r="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <rect x="0" y="5.25" width="3" height="1.5" rx="0.5"/>
+        <rect x="5" y="5.25" width="7" height="1.5" rx="0.5"/>
+        <circle cx="4" cy="6" r="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <rect x="0" y="9" width="7" height="1.5" rx="0.5"/>
+        <rect x="9" y="9" width="3" height="1.5" rx="0.5"/>
+        <circle cx="8" cy="9.75" r="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      </svg>
+    </button>
+
     <div class="header-tags">
       <span class="setting-tag" id="turnBadge">0 / 5 turns used</span>
       <span class="setting-tag" id="hypothesisBadge">Hypotheses: --</span>
+      <span class="setting-tag" id="modeBadge">Mode: score</span>
     </div>
 
     <span class="guesses-left-badge">6 / 5 / 4 / 3 / 2 / 1</span>
   </header>
+
+  <div class="float-panel settings-panel" id="settingsPanel" role="dialog" aria-label="Solver settings" aria-modal="false">
+    <div class="panel-title">Solver Mode</div>
+    <label class="mode-option">
+      <input type="radio" name="strategyMode" value="score" checked />
+      <span>
+        <strong>Score Max</strong>
+        <small>Maximize expected points each turn.</small>
+      </span>
+    </label>
+    <label class="mode-option">
+      <input type="radio" name="strategyMode" value="red" />
+      <span>
+        <strong>Red Hunt</strong>
+        <small>Maximize chance to hit red as soon as possible.</small>
+      </span>
+    </label>
+    <label class="mode-option">
+      <input type="radio" name="strategyMode" value="hybrid" />
+      <span>
+        <strong>Hybrid</strong>
+        <small>Balance expected points with red-hit probability.</small>
+      </span>
+    </label>
+  </div>
 
   <main class="main">
     <div class="solver-layout">

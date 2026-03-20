@@ -10,6 +10,7 @@ import {
 import {
   clearRecommended,
   createBoard,
+  markLikelyRed,
   markRecommended,
   renderLegend,
   renderNoSolutions,
@@ -29,19 +30,28 @@ const btnReset = document.getElementById('btnReset');
 const resultsArea = document.getElementById('resultsArea');
 const turnBadge = document.getElementById('turnBadge');
 const hypothesisBadge = document.getElementById('hypothesisBadge');
+const modeBadge = document.getElementById('modeBadge');
+const btnSettings = document.getElementById('btnSettings');
+const settingsPanel = document.getElementById('settingsPanel');
+const modeInputs = document.querySelectorAll('input[name="strategyMode"]');
 
 const observations = [];
 const observationIndexMap = new Map();
+let mode = 'score';
 
 renderLegend(legend);
 const cells = createBoard(boardGrid, handleCycleCell);
 setGridLabels(cells);
 updateBadges(turnBadge, hypothesisBadge, observations.length, allHypotheses.length);
+modeBadge.textContent = 'Mode: score';
 
-function refreshBoardRecommendation(idx = -1) {
+function refreshBoardRecommendation(idx = -1, likelyRedIdx = -1) {
   clearRecommended(cells);
   if (idx >= 0) {
     markRecommended(cells, idx);
+  }
+  if (likelyRedIdx >= 0) {
+    markLikelyRed(cells, likelyRedIdx);
   }
 }
 
@@ -49,7 +59,7 @@ function rebuildFromObservations() {
   for (let i = 0; i < cells.length; i += 1) {
     setCellState(cells, i, 'unknown');
   }
-  refreshBoardRecommendation(-1);
+  refreshBoardRecommendation(-1, -1);
 
   for (const obs of observations) {
     setCellState(cells, obs.index, obs.color);
@@ -80,8 +90,30 @@ function handleCycleCell(index, color) {
   }
 
   setCellState(cells, index, color);
-  refreshBoardRecommendation(-1);
+  refreshBoardRecommendation(-1, -1);
   updateBadges(turnBadge, hypothesisBadge, observations.length, allHypotheses.length);
+}
+
+btnSettings.addEventListener('click', () => {
+  const isOpen = settingsPanel.classList.contains('open');
+  settingsPanel.classList.toggle('open', !isOpen);
+  btnSettings.classList.toggle('active', !isOpen);
+});
+
+document.addEventListener('click', (event) => {
+  if (!settingsPanel.classList.contains('open')) return;
+  const target = event.target;
+  if (settingsPanel.contains(target) || btnSettings.contains(target)) return;
+  settingsPanel.classList.remove('open');
+  btnSettings.classList.remove('active');
+});
+
+for (const input of modeInputs) {
+  input.addEventListener('change', () => {
+    if (!input.checked) return;
+    mode = input.value;
+    modeBadge.textContent = `Mode: ${mode === 'red' ? 'red hunt' : mode}`;
+  });
 }
 
 btnAnalyze.addEventListener('click', () => {
@@ -90,24 +122,25 @@ btnAnalyze.addEventListener('click', () => {
   updateBadges(turnBadge, hypothesisBadge, observations.length, currentHypotheses.length);
 
   if (currentHypotheses.length === 0) {
-    refreshBoardRecommendation(-1);
+    refreshBoardRecommendation(-1, -1);
     renderNoSolutions(resultsArea, 'No hidden board satisfies these observations.');
     return;
   }
 
-  const bestMove = bestNextMove(currentHypotheses, observations);
+  const bestMove = bestNextMove(currentHypotheses, observations, mode);
   if (!bestMove) {
-    refreshBoardRecommendation(-1);
+    refreshBoardRecommendation(-1, -1);
     renderNoSolutions(resultsArea, 'No moves left. All observed turns are already used.');
     return;
   }
 
   const likelyRed = mostLikelyRedCell(currentHypotheses);
-  const branches = outcomeBranches(currentHypotheses, observations, bestMove);
-  const sequence = projectedSequence(currentHypotheses, observations);
+  const branches = outcomeBranches(currentHypotheses, observations, bestMove, mode);
+  const sequence = projectedSequence(currentHypotheses, observations, mode);
 
   renderResults(resultsArea, {
     observations,
+    mode,
     hypothesesCount: currentHypotheses.length,
     bestMove,
     likelyRed,
@@ -115,7 +148,7 @@ btnAnalyze.addEventListener('click', () => {
     sequence,
   });
 
-  refreshBoardRecommendation(bestMove.index);
+  refreshBoardRecommendation(bestMove.index, likelyRed.index);
 });
 
 btnUndo.addEventListener('click', () => {

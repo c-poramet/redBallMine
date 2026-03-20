@@ -34,6 +34,12 @@ export const COLOR_SCORE = {
   blue: 1,
 };
 
+export const STRATEGY_LABEL = {
+  score: 'score',
+  red: 'red hunt',
+  hybrid: 'hybrid',
+};
+
 export const REQUIRED_COUNTS = {
   red: 1,
   orange: 2,

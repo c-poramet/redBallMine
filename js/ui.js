@@ -1,4 +1,12 @@
-import { CELL_COUNT, COLOR_LABEL, COLORS, MAX_TURNS, PLAYABLE_COLORS, ROW_LABELS } from './constants.js';
+import {
+  CELL_COUNT,
+  COLOR_LABEL,
+  COLORS,
+  MAX_TURNS,
+  PLAYABLE_COLORS,
+  ROW_LABELS,
+  STRATEGY_LABEL,
+} from './constants.js';
 import { coordinateName } from './geometry.js';
 
 function fmtPct(p) {
@@ -61,12 +69,18 @@ export function setCellState(cells, index, color, recommended = false) {
 export function clearRecommended(cells) {
   for (const c of cells) {
     c.classList.remove('recommended');
+    c.classList.remove('likely-red');
   }
 }
 
 export function markRecommended(cells, index) {
   if (index < 0) return;
   cells[index].classList.add('recommended');
+}
+
+export function markLikelyRed(cells, index) {
+  if (index < 0) return;
+  cells[index].classList.add('likely-red');
 }
 
 export function updateBadges(turnBadgeEl, hypothesesBadgeEl, turnsUsed, hypothesesCount) {
@@ -78,9 +92,28 @@ function buildDistributionRows(move) {
   return PLAYABLE_COLORS.map((color) => `
     <tr>
       <td>${COLOR_LABEL[color]}</td>
-      <td>${fmtPct(move.distribution[color])}</td>
+      <td>
+        <div class="prob-row">
+          <div class="prob-track"><div class="prob-fill fill-${color}" style="width:${(move.distribution[color] * 100).toFixed(1)}%"></div></div>
+          <span>${fmtPct(move.distribution[color])}</span>
+        </div>
+      </td>
     </tr>
   `).join('');
+}
+
+function buildHeatmap(likelyRed) {
+  const max = Math.max(...likelyRed.all, 0.00001);
+  return likelyRed.all.map((p, idx) => {
+    const intensity = p / max;
+    const alpha = (0.15 + (0.65 * intensity)).toFixed(3);
+    return `
+      <div class="heat-cell" style="background:rgba(201,74,74,${alpha})">
+        <span class="heat-coord">${coordinateName(idx)}</span>
+        <span class="heat-prob">${fmtPct(p)}</span>
+      </div>
+    `;
+  }).join('');
 }
 
 function buildBranchRows(branches) {
@@ -124,6 +157,7 @@ export function renderResults(resultsArea, analysis) {
     likelyRed,
     branches,
     sequence,
+    mode,
     hypothesesCount,
   } = analysis;
 
@@ -131,13 +165,14 @@ export function renderResults(resultsArea, analysis) {
     <div class="card">
       <h3 class="section-label">Best Next Click</h3>
       <div class="big-value">${bestMove.coordinate}</div>
-      <p class="subtext">Expected points: <strong>${fmtNum(bestMove.expectedScore)}</strong> · Red chance on this cell: <strong>${fmtPct(bestMove.redProbability)}</strong></p>
+      <p class="subtext">Mode: <strong>${STRATEGY_LABEL[mode]}</strong> · Expected points: <strong>${fmtNum(bestMove.expectedScore)}</strong> · Red chance on this cell: <strong>${fmtPct(bestMove.redProbability)}</strong></p>
     </div>
 
     <div class="card">
       <h3 class="section-label">Most Likely Red Position</h3>
       <div class="big-value">${likelyRed.coordinate}</div>
       <p class="subtext">Posterior probability: <strong>${fmtPct(likelyRed.probability)}</strong> based on ${hypothesesCount.toLocaleString()} valid hidden boards.</p>
+      <div class="heatmap-grid">${buildHeatmap(likelyRed)}</div>
     </div>
 
     <div class="card">
