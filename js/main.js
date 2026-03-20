@@ -1,4 +1,16 @@
-import { COLOR_SCORE, MAX_TURNS } from './constants.js';
+import {
+  CELL_COUNT,
+  CENTER_INDEX,
+  COLOR_SCORE,
+  MAX_TURNS,
+  REQUIRED_COUNTS,
+} from './constants.js';
+import {
+  coordinateName,
+  getDiagonalCells,
+  getOrthNeighbors,
+  getRowColCells,
+} from './geometry.js';
 import { generateHypotheses } from './hypotheses.js';
 import {
   bestNextMove,
@@ -56,6 +68,106 @@ const SETTINGS_KEY = 'redBallMineSettingsV1';
 let hasRecordedCurrentRun = false;
 const guessDots = [];
 let uniqueBestOnly = false;
+const RED_CANDIDATES = [...Array(CELL_COUNT).keys()].filter((idx) => idx !== CENTER_INDEX);
+const redRelationCache = new Map();
+
+function getRedRelations(red) {
+  let cached = redRelationCache.get(red);
+  if (cached) return cached;
+  const orth = new Set(getOrthNeighbors(red));
+  const diag = new Set(getDiagonalCells(red));
+  const rowCol = new Set(getRowColCells(red));
+  const line = new Set([...diag, ...rowCol]);
+  cached = { orth, diag, rowCol, line };
+  redRelationCache.set(red, cached);
+  return cached;
+}
+
+function observationCompatibleWithRed(observation, red) {
+  const { index, color } = observation;
+  if (color === 'unknown') return true;
+  if (color === 'red') return index === red && index !== CENTER_INDEX;
+  if (index === red) return false;
+
+  const rel = getRedRelations(red);
+  if (color === 'orange') return rel.orth.has(index);
+  if (color === 'yellow') return rel.diag.has(index);
+  if (color === 'green') return rel.rowCol.has(index);
+  if (color === 'teal') return rel.line.has(index);
+  if (color === 'blue') return !rel.line.has(index);
+  return true;
+}
+
+function explainRuleBreaks(inputObservations) {
+  const violations = new Set();
+  const counts = {
+    red: 0,
+    orange: 0,
+    yellow: 0,
+    green: 0,
+  };
+
+  for (const obs of inputObservations) {
+    if (obs.color in counts) {
+      counts[obs.color] += 1;
+    }
+  }
+
+  if (counts.red > REQUIRED_COUNTS.red) {
+    violations.add('Rule broken: there must be exactly 1 red cell.');
+  }
+
+  if (counts.orange > REQUIRED_COUNTS.orange) {
+    violations.add('Rule broken: there can be at most 2 orange cells.');
+  }
+
+  if (counts.yellow > REQUIRED_COUNTS.yellow) {
+    violations.add('Rule broken: there can be at most 3 yellow cells.');
+  }
+
+  if (counts.green > REQUIRED_COUNTS.green) {
+    violations.add('Rule broken: there can be at most 4 green cells.');
+  }
+
+  for (const obs of inputObservations) {
+    if (obs.color === 'red' && obs.index === CENTER_INDEX) {
+      violations.add('Rule broken: red cannot be placed on the center cell (C3).');
+    }
+  }
+
+  for (const obs of inputObservations) {
+    if (obs.color === 'unknown' || obs.color === 'red') continue;
+    const possible = RED_CANDIDATES.some((red) => observationCompatibleWithRed(obs, red));
+    if (possible) continue;
+
+    const coord = coordinateName(obs.index);
+    if (obs.color === 'orange') {
+      violations.add(`Rule broken at ${coord}: orange must be orthogonally adjacent to red.`);
+    }
+    if (obs.color === 'yellow') {
+      violations.add(`Rule broken at ${coord}: yellow must lie on a red diagonal.`);
+    }
+    if (obs.color === 'green') {
+      violations.add(`Rule broken at ${coord}: green must lie in red's row or column.`);
+    }
+    if (obs.color === 'teal') {
+      violations.add(`Rule broken at ${coord}: teal must lie on a red line (row, column, or diagonal).`);
+    }
+    if (obs.color === 'blue') {
+      violations.add(`Rule broken at ${coord}: blue must be outside all red lines.`);
+    }
+  }
+
+  const consistentReds = RED_CANDIDATES.filter((red) => (
+    inputObservations.every((obs) => observationCompatibleWithRed(obs, red))
+  ));
+
+  if (!consistentReds.length) {
+    violations.add('Rule conflict: these observations cannot come from one single red position.');
+  }
+
+  return [...violations];
+}
 
 function normalizeMode(value) {
   return value === 'score' || value === 'red' || value === 'hybrid' ? value : 'score';
@@ -357,8 +469,9 @@ function analyzeBoard() {
   updateStatusBadges(currentHypotheses.length);
 
   if (currentHypotheses.length === 0) {
-    refreshBoardRecommendation(-1, -1);
-    renderNoSolutions(resultsArea, 'No hidden board satisfies these observations.');
+    refreshBoardRecommendation([], []);
+    const ruleBreaks = explainRuleBreaks(observations);
+    renderNoSolutions(resultsArea, 'No hidden board satisfies these observations.', ruleBreaks);
     return;
   }
 

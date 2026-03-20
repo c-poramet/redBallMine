@@ -1099,6 +1099,19 @@ body {
   font-size: var(--fs-sm);
 }
 
+.rule-break-list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.rule-break-list li {
+  color: var(--text-sec);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
 .footer {
   height: 42px;
   border-top: 1px solid var(--border);

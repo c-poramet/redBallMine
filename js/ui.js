@@ -243,12 +243,17 @@ function buildSequenceRows(sequence) {
   `).join('');
 }
 
-export function renderNoSolutions(resultsArea, msg) {
+export function renderNoSolutions(resultsArea, msg, ruleBreaks = []) {
+  const ruleList = ruleBreaks.length
+    ? `<ul class="rule-break-list">${ruleBreaks.map((item) => `<li>${item}</li>`).join('')}</ul>`
+    : '';
+
   resultsArea.innerHTML = `
     <div class="card">
       <h3 class="section-label">Inconsistent Input</h3>
       <p class="warn">${msg}</p>
       <p class="subtext">Adjust one or more observed cells. The current state cannot be produced by the game rules.</p>
+      ${ruleList}
     </div>
   `;
 }
