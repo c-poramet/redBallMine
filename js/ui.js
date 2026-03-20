@@ -265,6 +265,8 @@ export function renderResults(resultsArea, analysis) {
     hypothesesCount,
     isFinalTurn,
     runComparison,
+    uniqueBestOnly,
+    onToggleUniqueBest,
   } = analysis;
 
   const candidates = bestCandidates?.length ? bestCandidates : [{ ...bestMove, branches: initialBranches, sequence: initialSequence, expectedRemaining: scoreSummary.expectedRemaining, projectedTotal: scoreSummary.projectedTotal }];
@@ -313,7 +315,13 @@ export function renderResults(resultsArea, analysis) {
       ` : ''}
 
       <div class="card card-hero">
-        <h3 class="section-label">${isFinalTurn ? 'Best Hypothetical Next Click' : 'Best Next Click'}</h3>
+        <div class="section-head-row">
+          <h3 class="section-label">${isFinalTurn ? 'Best Hypothetical Next Click' : 'Best Next Click'}</h3>
+          <label class="inline-toggle" title="Show only unique equivalent best guesses">
+            <input type="checkbox" id="bestUniqueToggle" ${uniqueBestOnly ? 'checked' : ''} />
+            <span>Unique only</span>
+          </label>
+        </div>
         <div class="hero-grid">
           <div>
             <div class="best-guess-grid">${buildBestGuessCards(candidates)}</div>
@@ -402,6 +410,13 @@ export function renderResults(resultsArea, analysis) {
       setLockedVisual();
     });
   });
+
+  const uniqueToggle = resultsArea.querySelector('#bestUniqueToggle');
+  if (uniqueToggle && onToggleUniqueBest) {
+    uniqueToggle.addEventListener('change', () => {
+      onToggleUniqueBest(uniqueToggle.checked);
+    });
+  }
 }
 
 export function setGridLabels(cells) {

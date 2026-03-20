@@ -213,6 +213,10 @@ body {
   margin-top: 3px;
 }
 
+.mode-option-toggle {
+  border-top: 1px solid var(--border);
+}
+
 .mode-option strong {
   display: block;
   color: var(--text-pri);
@@ -788,6 +792,31 @@ body {
   font-size: var(--fs-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.section-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.section-head-row .section-label {
+  margin: 0;
+}
+
+.inline-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-sec);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+
+.inline-toggle input {
+  margin: 0;
 }
 
 .big-value {

@@ -44,6 +44,7 @@ const hoverIndicatorBody = document.getElementById('hoverIndicatorBody');
 const btnSettings = document.getElementById('btnSettings');
 const settingsPanel = document.getElementById('settingsPanel');
 const modeInputs = document.querySelectorAll('input[name="strategyMode"]');
+const uniqueBestToggle = document.getElementById('uniqueBestToggle');
 
 const observations = [];
 const observationIndexMap = new Map();
@@ -52,6 +53,7 @@ let currentHypotheses = [...allHypotheses];
 const RUN_HISTORY_KEY = 'redBallMineRunScoresV1';
 let hasRecordedCurrentRun = false;
 const guessDots = [];
+let uniqueBestOnly = false;
 
 function initGuessesLeftBadge() {
   guessesLeftBadge.innerHTML = '';
@@ -93,6 +95,64 @@ function refreshBoardRecommendation(bestIndices = [], likelyRedIndices = []) {
   for (const idx of likelyRedIndices) {
     markLikelyRed(cells, idx);
   }
+}
+
+function hasResultsDashboard() {
+  return Boolean(resultsArea.querySelector('.results-dashboard'));
+}
+
+function setUniqueBestOnly(nextValue, source = '') {
+  uniqueBestOnly = Boolean(nextValue);
+  if (uniqueBestToggle && source !== 'settings') {
+    uniqueBestToggle.checked = uniqueBestOnly;
+  }
+
+  const sectionToggle = resultsArea.querySelector('#bestUniqueToggle');
+  if (sectionToggle && source !== 'section') {
+    sectionToggle.checked = uniqueBestOnly;
+  }
+
+  if (hasResultsDashboard()) {
+    analyzeBoard();
+  }
+}
+
+function toKeyNum(value) {
+  return Number.isFinite(value) ? value.toFixed(6) : 'nan';
+}
+
+function candidateEquivalenceKey(candidate) {
+  const distKey = ['red', 'orange', 'yellow', 'green', 'teal', 'blue']
+    .map((c) => `${c}:${toKeyNum(candidate.distribution?.[c] ?? 0)}`)
+    .join('|');
+  const branchKey = (candidate.branches ?? [])
+    .map((b) => `${b.color}:${toKeyNum(b.probability)}:${b.survivors}:${toKeyNum(b.nextMove?.expectedScore ?? -1)}:${toKeyNum(b.nextMove?.redProbability ?? -1)}`)
+    .join('|');
+  const seqKey = (candidate.sequence ?? [])
+    .map((s) => `${s.turn}:${toKeyNum(s.expectedScore)}:${s.mostLikelyOutcome}:${toKeyNum(s.redProbability)}`)
+    .join('|');
+  return [
+    toKeyNum(candidate.objective),
+    toKeyNum(candidate.expectedScore),
+    toKeyNum(candidate.redProbability),
+    toKeyNum(candidate.expectedRemaining ?? 0),
+    toKeyNum(candidate.projectedTotal ?? 0),
+    distKey,
+    branchKey,
+    seqKey,
+  ].join('||');
+}
+
+function uniqueCandidateViews(candidates) {
+  const seen = new Set();
+  const out = [];
+  for (const c of candidates) {
+    const key = candidateEquivalenceKey(c);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(c);
+  }
+  return out;
 }
 
 function recomputeCurrentHypotheses() {
@@ -240,6 +300,12 @@ for (const input of modeInputs) {
   });
 }
 
+if (uniqueBestToggle) {
+  uniqueBestToggle.addEventListener('change', () => {
+    setUniqueBestOnly(uniqueBestToggle.checked, 'settings');
+  });
+}
+
 function analyzeBoard() {
   const isFinalTurn = observations.length >= MAX_TURNS;
   recomputeCurrentHypotheses();
@@ -277,6 +343,8 @@ function analyzeBoard() {
     };
   });
 
+  const displayCandidates = uniqueBestOnly ? uniqueCandidateViews(candidateViews) : candidateViews;
+
   const expectedRemainingScore = isFinalTurn ? 0 : (candidateViews[0]?.expectedRemaining ?? 0);
   const scoreSummary = {
     accumulated: accumulatedScore,
@@ -292,14 +360,16 @@ function analyzeBoard() {
     mode,
     hypothesesCount: currentHypotheses.length,
     bestMove,
-    bestCandidates: candidateViews,
+    bestCandidates: displayCandidates,
     likelyRed,
     insights,
-    branches: candidateViews[0]?.branches ?? [],
-    sequence: candidateViews[0]?.sequence ?? projectedSequence(currentHypotheses, observations, mode),
+    branches: displayCandidates[0]?.branches ?? [],
+    sequence: displayCandidates[0]?.sequence ?? projectedSequence(currentHypotheses, observations, mode),
     scoreSummary,
     isFinalTurn,
     runComparison,
+    uniqueBestOnly,
+    onToggleUniqueBest: (checked) => setUniqueBestOnly(checked, 'section'),
   });
 
   refreshBoardRecommendation(
