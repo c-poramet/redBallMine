@@ -119,14 +119,8 @@ function buildHeatmap(likelyRed) {
 function buildInsightGrid(insights) {
   return insights.map((info) => `
     <div class="insight-cell insight-${info.likelyColor}">
-      <div class="insight-head">
-        <span>${info.coordinate}</span>
-        <span>${fmtPct(info.redProbability)}</span>
-      </div>
-      <div class="insight-body">
-        <strong>${COLOR_LABEL[info.likelyColor]}</strong>
-        <small>${fmtPct(info.likelyProb)} · EV ${fmtNum(info.expectedScore)}</small>
-      </div>
+      <span class="insight-coord">${info.coordinate}</span>
+      <span class="insight-color">${COLOR_LABEL[info.likelyColor]}</span>
     </div>
   `).join('');
 }
