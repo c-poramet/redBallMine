@@ -759,8 +759,7 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
-.placeholder-row.rule-red kbd,
-.placeholder-row.rule-red span {
+.placeholder-row.rule-red kbd {
   color: #ffdede;
 }
 
@@ -769,8 +768,7 @@ body {
   background: rgba(201, 74, 74, 0.2);
 }
 
-.placeholder-row.rule-orange kbd,
-.placeholder-row.rule-orange span {
+.placeholder-row.rule-orange kbd {
   color: #ffe6d5;
 }
 
@@ -779,8 +777,7 @@ body {
   background: rgba(201, 127, 80, 0.2);
 }
 
-.placeholder-row.rule-yellow kbd,
-.placeholder-row.rule-yellow span {
+.placeholder-row.rule-yellow kbd {
   color: #fff7cb;
 }
 
@@ -789,18 +786,13 @@ body {
   background: rgba(200, 182, 83, 0.2);
 }
 
-.placeholder-row.rule-green kbd,
-.placeholder-row.rule-green span {
+.placeholder-row.rule-green kbd {
   color: #e6ffe3;
 }
 
 .placeholder-row.rule-green kbd {
   border-color: rgba(108, 169, 101, 0.6);
   background: rgba(108, 169, 101, 0.2);
-}
-
-.placeholder-row.rule-teal-blue span {
-  color: #dcfffc;
 }
 
 .placeholder-row.rule-teal-blue kbd {
