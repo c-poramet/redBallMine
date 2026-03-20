@@ -575,6 +575,7 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 8px;
+  padding-top: 2px;
   margin-bottom: 10px;
   max-height: 300px;
   overflow-y: auto;
