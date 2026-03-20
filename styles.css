@@ -385,10 +385,14 @@ body {
 
 .hover-color-label {
   font-family: var(--font-mono);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-lg);
   color: var(--text-pri);
   font-weight: 700;
   line-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .hover-row {
