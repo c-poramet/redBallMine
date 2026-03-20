@@ -167,6 +167,7 @@ export function renderResults(resultsArea, analysis) {
     insights,
     branches,
     sequence,
+    scoreSummary,
     mode,
     hypothesesCount,
   } = analysis;
@@ -185,6 +186,16 @@ export function renderResults(resultsArea, analysis) {
             <span><em>Red chance</em><strong>${fmtPct(bestMove.redProbability)}</strong></span>
             <span><em>Hypotheses</em><strong>${hypothesesCount.toLocaleString()}</strong></span>
           </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-label">Score Outlook</h3>
+        <div class="quick-stats">
+          <span><em>Accumulated</em><strong>${fmtNum(scoreSummary.accumulated)}</strong></span>
+          <span><em>Expected next</em><strong>${fmtNum(scoreSummary.expectedNext)}</strong></span>
+          <span><em>Expected remaining</em><strong>${fmtNum(scoreSummary.expectedRemaining)}</strong></span>
+          <span><em>Projected total</em><strong>${fmtNum(scoreSummary.projectedTotal)}</strong></span>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { MAX_TURNS } from './constants.js';
+import { COLOR_SCORE, MAX_TURNS } from './constants.js';
 import { generateHypotheses } from './hypotheses.js';
 import {
   bestNextMove,
@@ -139,6 +139,14 @@ btnAnalyze.addEventListener('click', () => {
   const insights = cellInsights(currentHypotheses);
   const branches = outcomeBranches(currentHypotheses, observations, bestMove, mode);
   const sequence = projectedSequence(currentHypotheses, observations, mode);
+  const accumulatedScore = observations.reduce((sum, obs) => sum + COLOR_SCORE[obs.color], 0);
+  const expectedRemainingScore = sequence.reduce((sum, step) => sum + step.expectedScore, 0);
+  const scoreSummary = {
+    accumulated: accumulatedScore,
+    expectedNext: bestMove.expectedScore,
+    expectedRemaining: expectedRemainingScore,
+    projectedTotal: accumulatedScore + expectedRemainingScore,
+  };
 
   renderResults(resultsArea, {
     observations,
@@ -149,6 +157,7 @@ btnAnalyze.addEventListener('click', () => {
     insights,
     branches,
     sequence,
+    scoreSummary,
   });
 
   refreshBoardRecommendation(bestMove.index, likelyRed.index);
