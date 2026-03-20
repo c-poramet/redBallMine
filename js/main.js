@@ -108,6 +108,9 @@ function handleCycleCell(index, color) {
   refreshBoardRecommendation([], []);
   recomputeCurrentHypotheses();
   updateBadges(turnBadge, hypothesisBadge, observations.length, currentHypotheses.length);
+
+  // Keep hover indicator in sync instantly after click without requiring mouse move.
+  handleHoverCell(index);
 }
 
 function handleHoverCell(index) {

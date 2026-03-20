@@ -353,13 +353,14 @@ body {
 .hover-indicator-body {
   border: 1px solid var(--border-md);
   border-radius: 8px;
-  min-height: 64px;
+  height: 86px;
   padding: 8px 10px;
   background: var(--surface);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
+  display: grid;
+  grid-template-rows: 18px 20px 20px;
+  align-content: center;
+  row-gap: 6px;
+  overflow: hidden;
 }
 
 .hover-indicator-body.is-empty {
@@ -379,18 +380,24 @@ body {
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   color: var(--text-dim);
+  line-height: 18px;
 }
 
 .hover-color-label {
   font-family: var(--font-mono);
-  font-size: var(--fs-md);
+  font-size: var(--fs-sm);
   color: var(--text-pri);
   font-weight: 700;
+  line-height: 20px;
+}
+
+.hover-row {
+  min-height: 0;
 }
 
 .hover-stack {
   width: 100%;
-  height: 12px;
+  height: 100%;
   border-radius: 999px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.06);
@@ -409,13 +416,20 @@ body {
 .seg-orange { background: var(--clr-orange); }
 .seg-red { background: var(--clr-red); }
 
-.hover-legend-inline {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+.hover-legend-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 8px;
+  align-items: center;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   color: var(--text-sec);
+}
+
+.hover-legend-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .hover-no-data {
@@ -424,6 +438,7 @@ body {
   color: var(--text-dim);
   padding-left: 8px;
   align-self: center;
+  line-height: 20px;
 }
 
 .legend-chip {

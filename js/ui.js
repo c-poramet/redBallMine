@@ -116,14 +116,19 @@ function sortedDistribution(dist) {
 
 export function renderHoverIndicatorEmpty(indicatorEl) {
   indicatorEl.className = 'hover-indicator-body is-empty';
-  indicatorEl.innerHTML = 'Hover a cell to preview your input color or predicted distribution.';
+  indicatorEl.innerHTML = `
+    <div class="hover-row hover-row-1">Hover a cell</div>
+    <div class="hover-row hover-row-2">for input color or predicted mix</div>
+    <div class="hover-row hover-row-3">&nbsp;</div>
+  `;
 }
 
 export function renderHoverIndicatorInput(indicatorEl, index, color) {
   indicatorEl.className = `hover-indicator-body color-${color}`;
   indicatorEl.innerHTML = `
-    <div class="hover-title">${coordinateName(index)} input</div>
-    <div class="hover-color-label">${COLOR_LABEL[color]}</div>
+    <div class="hover-row hover-row-1 hover-title">${coordinateName(index)} input</div>
+    <div class="hover-row hover-row-2 hover-color-label">${COLOR_LABEL[color]}</div>
+    <div class="hover-row hover-row-3">&nbsp;</div>
   `;
 }
 
@@ -135,14 +140,14 @@ export function renderHoverIndicatorDistribution(indicatorEl, index, dist) {
     .join('');
   const labels = sorted
     .slice(0, 3)
-    .map((x) => `<span>${COLOR_LABEL[x.color]} ${fmtPct(x.p)}</span>`)
+    .map((x) => `<span class="hover-legend-item">${COLOR_LABEL[x.color]} ${fmtPct(x.p)}</span>`)
     .join('');
 
   indicatorEl.className = 'hover-indicator-body';
   indicatorEl.innerHTML = `
-    <div class="hover-title">${coordinateName(index)} predicted mix</div>
-    <div class="hover-stack">${segments || '<span class="hover-no-data">No distribution data</span>'}</div>
-    <div class="hover-legend-inline">${labels}</div>
+    <div class="hover-row hover-row-1 hover-title">${coordinateName(index)} predicted mix</div>
+    <div class="hover-row hover-row-2 hover-stack">${segments || '<span class="hover-no-data">No distribution data</span>'}</div>
+    <div class="hover-row hover-row-3 hover-legend-grid">${labels || '<span class="hover-legend-item">No data</span><span class="hover-legend-item">&nbsp;</span><span class="hover-legend-item">&nbsp;</span>'}</div>
   `;
 }
 
