@@ -10,6 +10,7 @@ import {
   mostLikelyRedCells,
   outcomeBranches,
   projectedSequence,
+  projectedSequenceFromCandidate,
 } from './solver.js';
 import {
   clearRecommended,
@@ -177,10 +178,21 @@ btnAnalyze.addEventListener('click', () => {
   const likelyRed = mostLikelyRedCell(currentHypotheses);
   const likelyRedGroup = mostLikelyRedCells(currentHypotheses);
   const insights = cellInsights(currentHypotheses);
-  const branches = outcomeBranches(currentHypotheses, observations, bestMove, mode);
-  const sequence = projectedSequence(currentHypotheses, observations, mode);
   const accumulatedScore = observations.reduce((sum, obs) => sum + COLOR_SCORE[obs.color], 0);
-  const expectedRemainingScore = sequence.reduce((sum, step) => sum + step.expectedScore, 0);
+  const candidateViews = bestCandidates.map((candidate) => {
+    const branches = outcomeBranches(currentHypotheses, observations, candidate, mode);
+    const sequence = projectedSequenceFromCandidate(currentHypotheses, observations, candidate, mode);
+    const expectedRemaining = sequence.reduce((sum, step) => sum + step.expectedScore, 0);
+    return {
+      ...candidate,
+      branches,
+      sequence,
+      expectedRemaining,
+      projectedTotal: accumulatedScore + expectedRemaining,
+    };
+  });
+
+  const expectedRemainingScore = candidateViews[0]?.expectedRemaining ?? 0;
   const scoreSummary = {
     accumulated: accumulatedScore,
     expectedNext: bestMove.expectedScore,
@@ -193,10 +205,11 @@ btnAnalyze.addEventListener('click', () => {
     mode,
     hypothesesCount: currentHypotheses.length,
     bestMove,
+    bestCandidates: candidateViews,
     likelyRed,
     insights,
-    branches,
-    sequence,
+    branches: candidateViews[0]?.branches ?? [],
+    sequence: candidateViews[0]?.sequence ?? projectedSequence(currentHypotheses, observations, mode),
     scoreSummary,
   });
 

@@ -211,3 +211,59 @@ export function projectedSequence(hypotheses, observations, mode = 'score') {
 
   return out;
 }
+
+export function projectedSequenceFromCandidate(hypotheses, observations, firstMove, mode = 'score') {
+  if (!firstMove) return [];
+
+  const out = [];
+  const remainingTurns = Math.max(0, MAX_TURNS - observations.length);
+  if (remainingTurns === 0) return out;
+
+  const firstDist = firstMove.distribution;
+  let firstLikelyColor = 'blue';
+  for (const color of PLAYABLE_COLORS) {
+    if (firstDist[color] > firstDist[firstLikelyColor]) {
+      firstLikelyColor = color;
+    }
+  }
+
+  out.push({
+    turn: observations.length + 1,
+    index: firstMove.index,
+    coordinate: firstMove.coordinate,
+    expectedScore: firstMove.expectedScore,
+    mostLikelyOutcome: firstLikelyColor,
+    redProbability: firstMove.redProbability,
+  });
+
+  let currentObs = [...observations, { index: firstMove.index, color: firstLikelyColor }];
+  let currentHypotheses = filterHypotheses(hypotheses, currentObs);
+
+  for (let step = 1; step < remainingTurns; step += 1) {
+    const move = bestNextMove(currentHypotheses, currentObs, mode);
+    if (!move) break;
+
+    const dist = move.distribution;
+    let mostLikelyColor = 'blue';
+    for (const color of PLAYABLE_COLORS) {
+      if (dist[color] > dist[mostLikelyColor]) {
+        mostLikelyColor = color;
+      }
+    }
+
+    out.push({
+      turn: observations.length + step + 1,
+      index: move.index,
+      coordinate: move.coordinate,
+      expectedScore: move.expectedScore,
+      mostLikelyOutcome: mostLikelyColor,
+      redProbability: move.redProbability,
+    });
+
+    currentObs = [...currentObs, { index: move.index, color: mostLikelyColor }];
+    currentHypotheses = filterHypotheses(currentHypotheses, currentObs);
+    if (currentHypotheses.length === 0) break;
+  }
+
+  return out;
+}

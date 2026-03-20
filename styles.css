@@ -537,6 +537,50 @@ body {
   gap: 12px;
 }
 
+.best-guess-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.best-guess-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-pri);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard), transform 80ms var(--ease-standard);
+}
+
+.best-guess-card:hover,
+.best-guess-card:focus-visible,
+.best-guess-card.active {
+  border-color: rgba(201, 127, 80, 0.45);
+  background: rgba(201, 127, 80, 0.12);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.best-guess-cell {
+  font-family: var(--font-mono);
+  font-size: clamp(20px, 1.2vw + 12px, 28px);
+  font-weight: 700;
+  color: var(--text-pri);
+  line-height: 1.1;
+}
+
+.best-guess-meta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-sec);
+}
+
 .quick-stats {
   display: grid;
   grid-template-columns: 1fr;

@@ -170,6 +170,15 @@ function buildDistributionRows(move) {
   `).join('');
 }
 
+function buildBestGuessCards(candidates) {
+  return candidates.map((c, i) => `
+    <button class="best-guess-card${i === 0 ? ' active' : ''}" data-cand-index="${i}" type="button">
+      <span class="best-guess-cell">${c.coordinate}</span>
+      <span class="best-guess-meta">EV ${fmtNum(c.expectedScore)} · Red ${fmtPct(c.redProbability)}</span>
+    </button>
+  `).join('');
+}
+
 function buildHeatmap(likelyRed) {
   const max = Math.max(...likelyRed.all, 0.00001);
   return likelyRed.all.map((p, idx) => {
@@ -246,14 +255,44 @@ export function renderResults(resultsArea, analysis) {
   const {
     observations,
     bestMove,
+    bestCandidates,
     likelyRed,
     insights,
-    branches,
-    sequence,
+    branches: initialBranches,
+    sequence: initialSequence,
     scoreSummary,
     mode,
     hypothesesCount,
   } = analysis;
+
+  const candidates = bestCandidates?.length ? bestCandidates : [{ ...bestMove, branches: initialBranches, sequence: initialSequence, expectedRemaining: scoreSummary.expectedRemaining, projectedTotal: scoreSummary.projectedTotal }];
+  let activeCandidate = candidates[0];
+
+  function applyCandidateSections() {
+    const activeCell = resultsArea.querySelector('#activeBestCell');
+    const activeMode = resultsArea.querySelector('#activeModeLine');
+    const statExpected = resultsArea.querySelector('#statExpected');
+    const statRedChance = resultsArea.querySelector('#statRedChance');
+    const scoreExpectedNext = resultsArea.querySelector('#scoreExpectedNext');
+    const scoreExpectedRemain = resultsArea.querySelector('#scoreExpectedRemaining');
+    const scoreProjectedTotal = resultsArea.querySelector('#scoreProjectedTotal');
+    const outcomeLabel = resultsArea.querySelector('#outcomeLabel');
+    const outcomeBody = resultsArea.querySelector('#outcomeBody');
+    const branchBody = resultsArea.querySelector('#branchBody');
+    const sequenceTrack = resultsArea.querySelector('#sequenceTrack');
+
+    if (activeCell) activeCell.textContent = activeCandidate.coordinate;
+    if (activeMode) activeMode.innerHTML = `Mode: <strong>${STRATEGY_LABEL[mode]}</strong> · Objective <strong>${fmtNum(activeCandidate.objective)}</strong>`;
+    if (statExpected) statExpected.textContent = fmtNum(activeCandidate.expectedScore);
+    if (statRedChance) statRedChance.textContent = fmtPct(activeCandidate.redProbability);
+    if (scoreExpectedNext) scoreExpectedNext.textContent = fmtNum(activeCandidate.expectedScore);
+    if (scoreExpectedRemain) scoreExpectedRemain.textContent = fmtNum(activeCandidate.expectedRemaining ?? 0);
+    if (scoreProjectedTotal) scoreProjectedTotal.textContent = fmtNum(activeCandidate.projectedTotal ?? scoreSummary.projectedTotal);
+    if (outcomeLabel) outcomeLabel.textContent = activeCandidate.coordinate;
+    if (outcomeBody) outcomeBody.innerHTML = buildDistributionRows(activeCandidate);
+    if (branchBody) branchBody.innerHTML = buildBranchRows(activeCandidate.branches ?? initialBranches);
+    if (sequenceTrack) sequenceTrack.innerHTML = buildSequenceRows(activeCandidate.sequence ?? initialSequence);
+  }
 
   resultsArea.innerHTML = `
     <div class="results-dashboard">
@@ -261,21 +300,22 @@ export function renderResults(resultsArea, analysis) {
         <h3 class="section-label">Best Next Click</h3>
         <div class="hero-grid">
           <div>
-            <div class="big-value">${bestMove.coordinate}</div>
-            <p class="subtext">Mode: <strong>${STRATEGY_LABEL[mode]}</strong> · Objective <strong>${fmtNum(bestMove.objective)}</strong></p>
+            <div class="best-guess-grid">${buildBestGuessCards(candidates)}</div>
+            <div class="big-value" id="activeBestCell">${activeCandidate.coordinate}</div>
+            <p class="subtext" id="activeModeLine">Mode: <strong>${STRATEGY_LABEL[mode]}</strong> · Objective <strong>${fmtNum(activeCandidate.objective)}</strong></p>
           </div>
           <div class="quick-stats">
-            <span><em>Expected</em><strong>${fmtNum(bestMove.expectedScore)}</strong></span>
-            <span><em>Red chance</em><strong>${fmtPct(bestMove.redProbability)}</strong></span>
+            <span><em>Expected</em><strong id="statExpected">${fmtNum(activeCandidate.expectedScore)}</strong></span>
+            <span><em>Red chance</em><strong id="statRedChance">${fmtPct(activeCandidate.redProbability)}</strong></span>
             <span><em>Hypotheses</em><strong>${hypothesesCount.toLocaleString()}</strong></span>
           </div>
         </div>
       </div>
 
       <div class="card">
-        <h3 class="section-label">Color Outcome At ${bestMove.coordinate}</h3>
+        <h3 class="section-label">Color Outcome At <span id="outcomeLabel">${activeCandidate.coordinate}</span></h3>
         <table class="table compact-table">
-          <tbody>${buildDistributionRows(bestMove)}</tbody>
+          <tbody id="outcomeBody">${buildDistributionRows(activeCandidate)}</tbody>
         </table>
       </div>
 
@@ -293,9 +333,9 @@ export function renderResults(resultsArea, analysis) {
         <h3 class="section-label">Score Outlook</h3>
         <div class="quick-stats">
           <span><em>Accumulated</em><strong>${fmtNum(scoreSummary.accumulated)}</strong></span>
-          <span><em>Expected next</em><strong>${fmtNum(scoreSummary.expectedNext)}</strong></span>
-          <span><em>Expected remaining</em><strong>${fmtNum(scoreSummary.expectedRemaining)}</strong></span>
-          <span><em>Projected total</em><strong>${fmtNum(scoreSummary.projectedTotal)}</strong></span>
+          <span><em>Expected next</em><strong id="scoreExpectedNext">${fmtNum(activeCandidate.expectedScore)}</strong></span>
+          <span><em>Expected remaining</em><strong id="scoreExpectedRemaining">${fmtNum(activeCandidate.expectedRemaining ?? scoreSummary.expectedRemaining)}</strong></span>
+          <span><em>Projected total</em><strong id="scoreProjectedTotal">${fmtNum(activeCandidate.projectedTotal ?? scoreSummary.projectedTotal)}</strong></span>
         </div>
       </div>
 
@@ -303,17 +343,29 @@ export function renderResults(resultsArea, analysis) {
         <h3 class="section-label">If This Turn Returns...</h3>
         <table class="table compact-table">
           <thead><tr><th>Color</th><th>Prob</th><th>Boards</th><th>Next</th></tr></thead>
-          <tbody>${buildBranchRows(branches)}</tbody>
+          <tbody id="branchBody">${buildBranchRows(activeCandidate.branches ?? initialBranches)}</tbody>
         </table>
       </div>
 
       <div class="card card-sequence">
         <h3 class="section-label">Projected Sequence</h3>
-        <div class="sequence-track">${buildSequenceRows(sequence)}</div>
+        <div class="sequence-track" id="sequenceTrack">${buildSequenceRows(activeCandidate.sequence ?? initialSequence)}</div>
         <p class="subtext">${observations.length ? observations.map((o) => `${coordinateName(o.index)}=${COLOR_LABEL[o.color]}`).join(' · ') : 'No observed cells yet'}</p>
       </div>
     </div>
   `;
+
+  const cards = resultsArea.querySelectorAll('.best-guess-card');
+  cards.forEach((card, i) => {
+    const activate = () => {
+      activeCandidate = candidates[i];
+      cards.forEach((c) => c.classList.remove('active'));
+      card.classList.add('active');
+      applyCandidateSections();
+    };
+    card.addEventListener('mouseenter', activate);
+    card.addEventListener('focus', activate);
+  });
 }
 
 export function setGridLabels(cells) {
