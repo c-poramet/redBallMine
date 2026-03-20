@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Red Ball Mine Solver</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <span class="header-title">Red Ball Mine Solver</span>
+    <span class="header-dot" aria-hidden="true"></span>
+    <span class="header-sub">adaptive expected value engine</span>
+
+    <div class="header-tags">
+      <span class="setting-tag" id="turnBadge">0 / 5 turns used</span>
+      <span class="setting-tag" id="hypothesisBadge">Hypotheses: --</span>
+    </div>
+
+    <span class="guesses-left-badge">6 / 5 / 4 / 3 / 2 / 1</span>
+  </header>
+
+  <main class="main">
+    <div class="solver-layout">
+      <section class="left-panel panel" aria-labelledby="inputPanelTitle">
+        <h2 class="panel-title" id="inputPanelTitle">Observed State Input</h2>
+
+        <div class="grid-wrap">
+          <div class="board-grid" id="boardGrid" role="grid" aria-label="5 by 5 board input"></div>
+        </div>
+
+        <p class="help-text">Click a cell to cycle color: unknown, blue, teal, green, yellow, orange, red.</p>
+
+        <div class="legend" id="legend"></div>
+
+        <div class="controls">
+          <button class="btn-analyze" id="btnAnalyze">Analyze Best Move</button>
+          <div class="bottom-row">
+            <button class="btn-secondary" id="btnUndo" aria-label="Undo last observed cell">Undo</button>
+            <button class="btn-secondary" id="btnReset" aria-label="Reset all observations">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="right-panel panel" id="rightPanel" aria-live="polite">
+        <div class="results" id="resultsArea">
+          <div class="placeholder-state" id="placeholderState">
+            <div class="placeholder-pill">Ready</div>
+            <p class="placeholder-text">Start by recording what you observed in game, then click Analyze Best Move.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <span class="footer-credit">5x5 solver · scores 6/5/4/3/2/1 · adaptive recommendation each turn</span>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
