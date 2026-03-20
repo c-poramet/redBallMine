@@ -65,6 +65,29 @@ export function redProbabilities(hypotheses) {
   return probs;
 }
 
+export function cellInsights(hypotheses) {
+  const rows = [];
+  for (let i = 0; i < CELL_COUNT; i += 1) {
+    const dist = colorDistribution(hypotheses, i);
+    let bestColor = 'blue';
+    for (const color of PLAYABLE_COLORS) {
+      if (dist[color] > dist[bestColor]) {
+        bestColor = color;
+      }
+    }
+    rows.push({
+      index: i,
+      coordinate: coordinateName(i),
+      likelyColor: bestColor,
+      likelyProb: dist[bestColor],
+      redProbability: dist.red,
+      expectedScore: expectedValue(hypotheses, i),
+      distribution: dist,
+    });
+  }
+  return rows;
+}
+
 export function bestNextMove(hypotheses, observations, mode = 'score') {
   const observed = new Set(observations.map((o) => o.index));
 

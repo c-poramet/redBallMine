@@ -116,6 +116,21 @@ function buildHeatmap(likelyRed) {
   }).join('');
 }
 
+function buildInsightGrid(insights) {
+  return insights.map((info) => `
+    <div class="insight-cell insight-${info.likelyColor}">
+      <div class="insight-head">
+        <span>${info.coordinate}</span>
+        <span>${fmtPct(info.redProbability)}</span>
+      </div>
+      <div class="insight-body">
+        <strong>${COLOR_LABEL[info.likelyColor]}</strong>
+        <small>${fmtPct(info.likelyProb)} · EV ${fmtNum(info.expectedScore)}</small>
+      </div>
+    </div>
+  `).join('');
+}
+
 function buildBranchRows(branches) {
   if (!branches.length) {
     return '<tr><td colspan="4">No valid branches from this state.</td></tr>';
@@ -155,6 +170,7 @@ export function renderResults(resultsArea, analysis) {
     observations,
     bestMove,
     likelyRed,
+    insights,
     branches,
     sequence,
     mode,
@@ -162,44 +178,54 @@ export function renderResults(resultsArea, analysis) {
   } = analysis;
 
   resultsArea.innerHTML = `
-    <div class="card">
-      <h3 class="section-label">Best Next Click</h3>
-      <div class="big-value">${bestMove.coordinate}</div>
-      <p class="subtext">Mode: <strong>${STRATEGY_LABEL[mode]}</strong> · Expected points: <strong>${fmtNum(bestMove.expectedScore)}</strong> · Red chance on this cell: <strong>${fmtPct(bestMove.redProbability)}</strong></p>
-    </div>
+    <div class="results-dashboard">
+      <div class="card card-hero">
+        <h3 class="section-label">Best Next Click</h3>
+        <div class="hero-grid">
+          <div>
+            <div class="big-value">${bestMove.coordinate}</div>
+            <p class="subtext">Mode: <strong>${STRATEGY_LABEL[mode]}</strong> · Objective <strong>${fmtNum(bestMove.objective)}</strong></p>
+          </div>
+          <div class="quick-stats">
+            <span><em>Expected</em><strong>${fmtNum(bestMove.expectedScore)}</strong></span>
+            <span><em>Red chance</em><strong>${fmtPct(bestMove.redProbability)}</strong></span>
+            <span><em>Hypotheses</em><strong>${hypothesesCount.toLocaleString()}</strong></span>
+          </div>
+        </div>
+      </div>
 
-    <div class="card">
-      <h3 class="section-label">Most Likely Red Position</h3>
-      <div class="big-value">${likelyRed.coordinate}</div>
-      <p class="subtext">Posterior probability: <strong>${fmtPct(likelyRed.probability)}</strong> based on ${hypothesesCount.toLocaleString()} valid hidden boards.</p>
-      <div class="heatmap-grid">${buildHeatmap(likelyRed)}</div>
-    </div>
+      <div class="card">
+        <h3 class="section-label">Color Outcome At ${bestMove.coordinate}</h3>
+        <table class="table compact-table">
+          <tbody>${buildDistributionRows(bestMove)}</tbody>
+        </table>
+      </div>
 
-    <div class="card">
-      <h3 class="section-label">Color Outcome Probabilities At ${bestMove.coordinate}</h3>
-      <table class="table">
-        <thead><tr><th>Color</th><th>Probability</th></tr></thead>
-        <tbody>${buildDistributionRows(bestMove)}</tbody>
-      </table>
-    </div>
+      <div class="card">
+        <h3 class="section-label">Most Likely Red Position</h3>
+        <div class="big-value">${likelyRed.coordinate}</div>
+        <p class="subtext">Posterior probability: <strong>${fmtPct(likelyRed.probability)}</strong></p>
+        <div class="heatmap-grid">${buildHeatmap(likelyRed)}</div>
+      </div>
 
-    <div class="card">
-      <h3 class="section-label">If This Turn Returns...</h3>
-      <table class="table">
-        <thead><tr><th>Observed Color</th><th>Probability</th><th>Surviving Boards</th><th>Next Best Cell</th></tr></thead>
-        <tbody>${buildBranchRows(branches)}</tbody>
-      </table>
-    </div>
+      <div class="card">
+        <h3 class="section-label">Per-Cell Likelihood Details</h3>
+        <div class="insight-grid">${buildInsightGrid(insights)}</div>
+      </div>
 
-    <div class="card">
-      <h3 class="section-label">Projected Sequence (Most-Likely Path)</h3>
-      <ol class="sequence-list">${buildSequenceRows(sequence)}</ol>
-      <p class="subtext">This sequence re-optimizes after each assumed most-likely outcome. Use Analyze again after each real click for the exact live update.</p>
-    </div>
+      <div class="card">
+        <h3 class="section-label">If This Turn Returns...</h3>
+        <table class="table compact-table">
+          <thead><tr><th>Color</th><th>Prob</th><th>Boards</th><th>Next</th></tr></thead>
+          <tbody>${buildBranchRows(branches)}</tbody>
+        </table>
+      </div>
 
-    <div class="card">
-      <h3 class="section-label">Observed Cells</h3>
-      <p class="subtext">${observations.length ? observations.map((o) => `${coordinateName(o.index)}=${COLOR_LABEL[o.color]}`).join(' · ') : 'None yet'}</p>
+      <div class="card">
+        <h3 class="section-label">Projected Sequence</h3>
+        <ol class="sequence-list">${buildSequenceRows(sequence)}</ol>
+        <p class="subtext">${observations.length ? observations.map((o) => `${coordinateName(o.index)}=${COLOR_LABEL[o.color]}`).join(' · ') : 'No observed cells yet'}</p>
+      </div>
     </div>
   `;
 }

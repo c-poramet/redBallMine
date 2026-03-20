@@ -2,6 +2,7 @@ import { MAX_TURNS } from './constants.js';
 import { generateHypotheses } from './hypotheses.js';
 import {
   bestNextMove,
+  cellInsights,
   filterHypotheses,
   mostLikelyRedCell,
   outcomeBranches,
@@ -135,6 +136,7 @@ btnAnalyze.addEventListener('click', () => {
   }
 
   const likelyRed = mostLikelyRedCell(currentHypotheses);
+  const insights = cellInsights(currentHypotheses);
   const branches = outcomeBranches(currentHypotheses, observations, bestMove, mode);
   const sequence = projectedSequence(currentHypotheses, observations, mode);
 
@@ -144,6 +146,7 @@ btnAnalyze.addEventListener('click', () => {
     hypothesesCount: currentHypotheses.length,
     bestMove,
     likelyRed,
+    insights,
     branches,
     sequence,
   });
