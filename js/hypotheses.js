@@ -45,19 +45,56 @@ function buildBoard(red, orange, yellow, green, teal) {
   return board;
 }
 
-function validateCounts(board) {
-  const count = {
-    red: 0,
-    orange: 0,
-    yellow: 0,
-    green: 0,
-    teal: 0,
-    blue: 0,
-  };
-  for (const color of board) {
-    count[color] += 1;
+function allCells() {
+  return [...Array(CELL_COUNT).keys()];
+}
+
+function deriveTealCells(red, orange, yellow, green) {
+  const rowCol = uniqueSorted(getRowColCells(red));
+  const diag = uniqueSorted(getDiagonalCells(red));
+  const line = new Set([...rowCol, ...diag]);
+  const used = new Set([red, ...orange, ...yellow, ...green]);
+  return [...line].filter((idx) => !used.has(idx));
+}
+
+function validateRules(board, red) {
+  const orth = new Set(getOrthNeighbors(red));
+  const rowCol = new Set(getRowColCells(red));
+  const diag = new Set(getDiagonalCells(red));
+  const line = new Set([...rowCol, ...diag]);
+
+  let orangeCount = 0;
+  let yellowCount = 0;
+  let greenCount = 0;
+
+  for (let i = 0; i < board.length; i += 1) {
+    const color = board[i];
+    if (i === red && color !== 'red') return false;
+    if (color === 'orange') {
+      orangeCount += 1;
+      if (!orth.has(i)) return false;
+    }
+    if (color === 'yellow') {
+      yellowCount += 1;
+      if (!diag.has(i)) return false;
+    }
+    if (color === 'green') {
+      greenCount += 1;
+      if (!rowCol.has(i)) return false;
+    }
+    if (color === 'teal') {
+      if (!line.has(i)) return false;
+    }
+    if (color === 'blue') {
+      if (line.has(i)) return false;
+    }
   }
-  return Object.entries(REQUIRED_COUNTS).every(([key, value]) => count[key] === value);
+
+  return (
+    orangeCount === REQUIRED_COUNTS.orange &&
+    yellowCount === REQUIRED_COUNTS.yellow &&
+    greenCount === REQUIRED_COUNTS.green
+  );
 }
 
 export function generateHypotheses() {
@@ -69,13 +106,8 @@ export function generateHypotheses() {
     const orth = uniqueSorted(getOrthNeighbors(red));
     const diag = uniqueSorted(getDiagonalCells(red));
     const rowCol = uniqueSorted(getRowColCells(red));
-    const line = uniqueSorted([...rowCol, ...diag]);
-
     if (orth.length < REQUIRED_COUNTS.orange) continue;
     if (diag.length < REQUIRED_COUNTS.yellow) continue;
-
-    // Blue is forbidden on red's row/column/diagonal. Those 12 cells must be exactly O+Y+G+T.
-    if (line.length !== 12) continue;
 
     const orangeChoices = combinations(orth, REQUIRED_COUNTS.orange);
     for (const orange of orangeChoices) {
@@ -89,15 +121,10 @@ export function generateHypotheses() {
         const greenChoices = combinations(greenPool, REQUIRED_COUNTS.green);
 
         for (const green of greenChoices) {
-          const usedAfterGreen = new Set([...orange, ...yellow, ...green]);
-          const tealPool = setDifference(line, usedAfterGreen);
-          const tealChoices = combinations(tealPool, REQUIRED_COUNTS.teal);
-
-          for (const teal of tealChoices) {
-            const board = buildBoard(red, orange, yellow, green, teal);
-            if (validateCounts(board)) {
-              hypotheses.push(board);
-            }
+          const teal = deriveTealCells(red, orange, yellow, green);
+          const board = buildBoard(red, orange, yellow, green, teal);
+          if (validateRules(board, red)) {
+            hypotheses.push(board);
           }
         }
       }

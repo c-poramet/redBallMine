@@ -45,8 +45,6 @@ export const REQUIRED_COUNTS = {
   orange: 2,
   yellow: 3,
   green: 4,
-  teal: 3,
-  blue: 12,
 };
 
 export const ROW_LABELS = ['A', 'B', 'C', 'D', 'E'];
