@@ -36,6 +36,7 @@ const btnAnalyze = document.getElementById('btnAnalyze');
 const btnUndo = document.getElementById('btnUndo');
 const btnReset = document.getElementById('btnReset');
 const resultsArea = document.getElementById('resultsArea');
+const defaultResultsMarkup = resultsArea.innerHTML;
 const turnBadge = document.getElementById('turnBadge');
 const hypothesisBadge = document.getElementById('hypothesisBadge');
 const modeBadge = document.getElementById('modeBadge');
@@ -465,41 +466,7 @@ btnUndo.addEventListener('click', () => {
 btnReset.addEventListener('click', () => {
   observations.length = 0;
   observationIndexMap.clear();
-  resultsArea.innerHTML = `
-    <div class="placeholder-state">
-      <div class="placeholder-badge">RED BALL MINE SOLVER</div>
-      <p class="placeholder-text">Click cells to set observed colors, then click <strong>Analyze</strong>.</p>
-      <p class="placeholder-meta">adaptive expected value engine</p>
-
-      <section class="placeholder-section">
-        <h4>Controls</h4>
-        <div class="placeholder-rows">
-          <div class="placeholder-row"><kbd>Click Cell</kbd><span>Cycle observed color for that board position.</span></div>
-          <div class="placeholder-row"><kbd>Enter</kbd><span>Analyze from current observations.</span></div>
-          <div class="placeholder-row"><kbd>Ctrl + Z</kbd><span>Undo your most recent observed cell.</span></div>
-          <div class="placeholder-row"><kbd>Space</kbd><span>Reset and start a new run.</span></div>
-        </div>
-      </section>
-
-      <section class="placeholder-section">
-        <h4>Modes</h4>
-        <div class="placeholder-rows">
-          <div class="placeholder-row"><kbd>Score</kbd><span>Max expected points for the next turn.</span></div>
-          <div class="placeholder-row"><kbd>Red Hunt</kbd><span>Max chance of hitting red immediately.</span></div>
-          <div class="placeholder-row"><kbd>Hybrid</kbd><span>Blend expected score and red-hit chance.</span></div>
-        </div>
-      </section>
-
-      <section class="placeholder-section">
-        <h4>Tips</h4>
-        <ul class="placeholder-tips">
-          <li>Hover any cell to preview predicted color distribution.</li>
-          <li>Use <strong>Hybrid</strong> when you want balanced score and red discovery.</li>
-          <li>At 5 guesses, the solver auto-reveals final result and run ranking.</li>
-        </ul>
-      </section>
-    </div>
-  `;
+  resultsArea.innerHTML = defaultResultsMarkup;
   rebuildFromObservations();
   renderHoverIndicatorEmpty(hoverIndicatorBody);
   hasRecordedCurrentRun = false;
