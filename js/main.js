@@ -186,6 +186,11 @@ function handleHoverLeave() {
   renderHoverIndicatorEmpty(hoverIndicatorBody);
 }
 
+function isFormEditingTarget(target) {
+  if (!(target instanceof Element)) return false;
+  return Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+}
+
 btnSettings.addEventListener('click', () => {
   const isOpen = settingsPanel.classList.contains('open');
   settingsPanel.classList.toggle('open', !isOpen);
@@ -280,6 +285,29 @@ btnAnalyze.addEventListener('click', () => {
   analyzeBoard();
 });
 
+document.addEventListener('keydown', (event) => {
+  if (isFormEditingTarget(event.target)) return;
+
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'z') {
+    event.preventDefault();
+    btnUndo.click();
+    return;
+  }
+
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    analyzeBoard();
+    return;
+  }
+
+  if (event.key === ' ' || event.key === 'Spacebar' || event.code === 'Space') {
+    event.preventDefault();
+    btnReset.click();
+  }
+});
+
 btnUndo.addEventListener('click', () => {
   if (!observations.length) return;
   const removed = observations.pop();
@@ -307,9 +335,9 @@ btnReset.addEventListener('click', () => {
         <h4>Controls</h4>
         <div class="placeholder-rows">
           <div class="placeholder-row"><kbd>Click Cell</kbd><span>Cycle observed color for that board position.</span></div>
-          <div class="placeholder-row"><kbd>Analyze</kbd><span>Compute best candidate move from current observations.</span></div>
-          <div class="placeholder-row"><kbd>Undo</kbd><span>Remove your most recent observed cell.</span></div>
-          <div class="placeholder-row"><kbd>Reset</kbd><span>Clear all observations and start a new run.</span></div>
+          <div class="placeholder-row"><kbd>Enter</kbd><span>Analyze from current observations.</span></div>
+          <div class="placeholder-row"><kbd>Ctrl + Z</kbd><span>Undo your most recent observed cell.</span></div>
+          <div class="placeholder-row"><kbd>Space</kbd><span>Reset and start a new run.</span></div>
         </div>
       </section>
 
