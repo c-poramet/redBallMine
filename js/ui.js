@@ -267,6 +267,7 @@ export function renderResults(resultsArea, analysis) {
 
   const candidates = bestCandidates?.length ? bestCandidates : [{ ...bestMove, branches: initialBranches, sequence: initialSequence, expectedRemaining: scoreSummary.expectedRemaining, projectedTotal: scoreSummary.projectedTotal }];
   let activeCandidate = candidates[0];
+  let lockedCandidateIndex = null;
 
   function applyCandidateSections() {
     const activeCell = resultsArea.querySelector('#activeBestCell');
@@ -363,8 +364,28 @@ export function renderResults(resultsArea, analysis) {
       card.classList.add('active');
       applyCandidateSections();
     };
-    card.addEventListener('mouseenter', activate);
-    card.addEventListener('focus', activate);
+
+    const setLockedVisual = () => {
+      cards.forEach((c, idx) => c.classList.toggle('locked', idx === lockedCandidateIndex));
+    };
+
+    card.addEventListener('mouseenter', () => {
+      if (lockedCandidateIndex != null) return;
+      activate();
+    });
+    card.addEventListener('focus', () => {
+      if (lockedCandidateIndex != null) return;
+      activate();
+    });
+    card.addEventListener('click', () => {
+      if (lockedCandidateIndex === i) {
+        lockedCandidateIndex = null;
+      } else {
+        lockedCandidateIndex = i;
+        activate();
+      }
+      setLockedVisual();
+    });
   });
 }
 

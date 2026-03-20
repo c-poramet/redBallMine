@@ -585,6 +585,12 @@ body {
   outline: none;
 }
 
+.best-guess-card.locked {
+  border-color: rgba(200, 182, 83, 0.55);
+  background: rgba(200, 182, 83, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(200, 182, 83, 0.25);
+}
+
 .best-guess-cell {
   font-family: var(--font-mono);
   font-size: clamp(20px, 1.2vw + 12px, 28px);
