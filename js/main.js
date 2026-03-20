@@ -63,14 +63,14 @@ function normalizeMode(value) {
 function loadSettings() {
   try {
     const raw = window.localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return { mode: 'score', uniqueBestOnly: false };
+    if (!raw) return { mode: 'score', uniqueBestOnly: true };
     const parsed = JSON.parse(raw);
     return {
       mode: normalizeMode(parsed?.mode),
       uniqueBestOnly: Boolean(parsed?.uniqueBestOnly),
     };
   } catch {
-    return { mode: 'score', uniqueBestOnly: false };
+    return { mode: 'score', uniqueBestOnly: true };
   }
 }
 
