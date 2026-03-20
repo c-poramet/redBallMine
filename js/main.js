@@ -48,6 +48,8 @@ const observations = [];
 const observationIndexMap = new Map();
 let mode = 'score';
 let currentHypotheses = [...allHypotheses];
+const RUN_HISTORY_KEY = 'redBallMineRunScoresV1';
+let hasRecordedCurrentRun = false;
 
 renderLegend(legend);
 const cells = createBoard(boardGrid, handleCycleCell, handleHoverCell, handleHoverLeave);
@@ -68,6 +70,48 @@ function refreshBoardRecommendation(bestIndices = [], likelyRedIndices = []) {
 
 function recomputeCurrentHypotheses() {
   currentHypotheses = filterHypotheses(allHypotheses, observations);
+}
+
+function loadRunHistory() {
+  try {
+    const raw = window.localStorage.getItem(RUN_HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((x) => Number.isFinite(x));
+  } catch {
+    return [];
+  }
+}
+
+function saveRunHistory(scores) {
+  try {
+    window.localStorage.setItem(RUN_HISTORY_KEY, JSON.stringify(scores));
+  } catch {
+    // Ignore storage failures (private mode / blocked storage).
+  }
+}
+
+function finalizeRunComparison(currentScore) {
+  const history = loadRunHistory();
+  if (!hasRecordedCurrentRun) {
+    history.push(currentScore);
+    saveRunHistory(history);
+    hasRecordedCurrentRun = true;
+  }
+
+  const bestScore = history.length ? Math.max(...history) : currentScore;
+  const betterRuns = history.filter((score) => score > currentScore).length;
+  const equalRuns = history.filter((score) => score === currentScore).length;
+
+  return {
+    currentScore,
+    bestScore,
+    rank: betterRuns + 1,
+    totalRuns: history.length || 1,
+    tiedRuns: equalRuns,
+    isBest: betterRuns === 0,
+  };
 }
 
 function rebuildFromObservations() {
@@ -110,8 +154,16 @@ function handleCycleCell(index, color) {
   recomputeCurrentHypotheses();
   updateBadges(turnBadge, hypothesisBadge, observations.length, currentHypotheses.length);
 
+  if (observations.length < MAX_TURNS) {
+    hasRecordedCurrentRun = false;
+  }
+
   // Keep hover indicator in sync instantly after click without requiring mouse move.
   handleHoverCell(index);
+
+  if (observations.length >= MAX_TURNS) {
+    analyzeBoard();
+  }
 }
 
 function handleHoverCell(index) {
@@ -156,7 +208,8 @@ for (const input of modeInputs) {
   });
 }
 
-btnAnalyze.addEventListener('click', () => {
+function analyzeBoard() {
+  const isFinalTurn = observations.length >= MAX_TURNS;
   recomputeCurrentHypotheses();
 
   updateBadges(turnBadge, hypothesisBadge, observations.length, currentHypotheses.length);
@@ -192,13 +245,15 @@ btnAnalyze.addEventListener('click', () => {
     };
   });
 
-  const expectedRemainingScore = candidateViews[0]?.expectedRemaining ?? 0;
+  const expectedRemainingScore = isFinalTurn ? 0 : (candidateViews[0]?.expectedRemaining ?? 0);
   const scoreSummary = {
     accumulated: accumulatedScore,
-    expectedNext: bestMove.expectedScore,
+    expectedNext: isFinalTurn ? 0 : bestMove.expectedScore,
     expectedRemaining: expectedRemainingScore,
     projectedTotal: accumulatedScore + expectedRemainingScore,
   };
+
+  const runComparison = isFinalTurn ? finalizeRunComparison(accumulatedScore) : null;
 
   renderResults(resultsArea, {
     observations,
@@ -211,12 +266,18 @@ btnAnalyze.addEventListener('click', () => {
     branches: candidateViews[0]?.branches ?? [],
     sequence: candidateViews[0]?.sequence ?? projectedSequence(currentHypotheses, observations, mode),
     scoreSummary,
+    isFinalTurn,
+    runComparison,
   });
 
   refreshBoardRecommendation(
     bestCandidates.map((c) => c.index),
     likelyRedGroup.indices,
   );
+}
+
+btnAnalyze.addEventListener('click', () => {
+  analyzeBoard();
 });
 
 btnUndo.addEventListener('click', () => {
@@ -228,6 +289,9 @@ btnUndo.addEventListener('click', () => {
 
   rebuildFromObservations();
   renderHoverIndicatorEmpty(hoverIndicatorBody);
+  if (observations.length < MAX_TURNS) {
+    hasRecordedCurrentRun = false;
+  }
 });
 
 btnReset.addEventListener('click', () => {
@@ -241,4 +305,5 @@ btnReset.addEventListener('click', () => {
   `;
   rebuildFromObservations();
   renderHoverIndicatorEmpty(hoverIndicatorBody);
+  hasRecordedCurrentRun = false;
 });

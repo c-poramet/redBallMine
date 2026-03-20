@@ -263,6 +263,8 @@ export function renderResults(resultsArea, analysis) {
     scoreSummary,
     mode,
     hypothesesCount,
+    isFinalTurn,
+    runComparison,
   } = analysis;
 
   const candidates = bestCandidates?.length ? bestCandidates : [{ ...bestMove, branches: initialBranches, sequence: initialSequence, expectedRemaining: scoreSummary.expectedRemaining, projectedTotal: scoreSummary.projectedTotal }];
@@ -297,8 +299,21 @@ export function renderResults(resultsArea, analysis) {
 
   resultsArea.innerHTML = `
     <div class="results-dashboard">
+      ${isFinalTurn && runComparison ? `
+      <div class="card">
+        <h3 class="section-label">Run Complete</h3>
+        <div class="quick-stats">
+          <span><em>Final score</em><strong>${fmtNum(runComparison.currentScore)}</strong></span>
+          <span><em>Rank</em><strong>#${runComparison.rank} / ${runComparison.totalRuns}</strong></span>
+          <span><em>Best score</em><strong>${fmtNum(runComparison.bestScore)}</strong></span>
+          <span><em>Status</em><strong>${runComparison.isBest ? (runComparison.tiedRuns > 1 ? 'Tied best' : 'New best') : 'Below best'}</strong></span>
+        </div>
+        <p class="subtext">${runComparison.isBest ? 'This run matches or sets your best score so far.' : `This run is ${fmtNum(runComparison.bestScore - runComparison.currentScore)} points behind your best.`}</p>
+      </div>
+      ` : ''}
+
       <div class="card card-hero">
-        <h3 class="section-label">Best Next Click</h3>
+        <h3 class="section-label">${isFinalTurn ? 'Best Hypothetical Next Click' : 'Best Next Click'}</h3>
         <div class="hero-grid">
           <div>
             <div class="best-guess-grid">${buildBestGuessCards(candidates)}</div>
