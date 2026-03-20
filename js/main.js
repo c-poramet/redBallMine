@@ -51,9 +51,48 @@ const observationIndexMap = new Map();
 let mode = 'score';
 let currentHypotheses = [...allHypotheses];
 const RUN_HISTORY_KEY = 'redBallMineRunScoresV1';
+const SETTINGS_KEY = 'redBallMineSettingsV1';
 let hasRecordedCurrentRun = false;
 const guessDots = [];
 let uniqueBestOnly = false;
+
+function normalizeMode(value) {
+  return value === 'score' || value === 'red' || value === 'hybrid' ? value : 'score';
+}
+
+function loadSettings() {
+  try {
+    const raw = window.localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return { mode: 'score', uniqueBestOnly: false };
+    const parsed = JSON.parse(raw);
+    return {
+      mode: normalizeMode(parsed?.mode),
+      uniqueBestOnly: Boolean(parsed?.uniqueBestOnly),
+    };
+  } catch {
+    return { mode: 'score', uniqueBestOnly: false };
+  }
+}
+
+function saveSettings() {
+  try {
+    window.localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+      mode,
+      uniqueBestOnly,
+    }));
+  } catch {
+    // Ignore storage failures (private mode / blocked storage).
+  }
+}
+
+function setMode(nextMode, persist = true) {
+  mode = normalizeMode(nextMode);
+  for (const input of modeInputs) {
+    input.checked = input.value === mode;
+  }
+  modeBadge.textContent = `Mode: ${mode === 'red' ? 'red hunt' : mode}`;
+  if (persist) saveSettings();
+}
 
 function initGuessesLeftBadge() {
   guessesLeftBadge.innerHTML = '';
@@ -84,8 +123,11 @@ const cells = createBoard(boardGrid, handleCycleCell, handleHoverCell, handleHov
 setGridLabels(cells);
 initGuessesLeftBadge();
 updateStatusBadges(allHypotheses.length);
-modeBadge.textContent = 'Mode: score';
 renderHoverIndicatorEmpty(hoverIndicatorBody);
+
+const initialSettings = loadSettings();
+setMode(initialSettings.mode, false);
+setUniqueBestOnly(initialSettings.uniqueBestOnly, 'settings');
 
 function refreshBoardRecommendation(bestIndices = [], likelyRedIndices = []) {
   clearRecommended(cells);
@@ -115,6 +157,8 @@ function setUniqueBestOnly(nextValue, source = '') {
   if (hasResultsDashboard()) {
     analyzeBoard();
   }
+
+  saveSettings();
 }
 
 function toKeyNum(value) {
