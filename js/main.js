@@ -39,6 +39,7 @@ const resultsArea = document.getElementById('resultsArea');
 const turnBadge = document.getElementById('turnBadge');
 const hypothesisBadge = document.getElementById('hypothesisBadge');
 const modeBadge = document.getElementById('modeBadge');
+const guessesLeftBadge = document.getElementById('guessesLeftBadge');
 const hoverIndicatorBody = document.getElementById('hoverIndicatorBody');
 const btnSettings = document.getElementById('btnSettings');
 const settingsPanel = document.getElementById('settingsPanel');
@@ -50,11 +51,37 @@ let mode = 'score';
 let currentHypotheses = [...allHypotheses];
 const RUN_HISTORY_KEY = 'redBallMineRunScoresV1';
 let hasRecordedCurrentRun = false;
+const guessDots = [];
+
+function initGuessesLeftBadge() {
+  guessesLeftBadge.innerHTML = '';
+  for (let i = 0; i < MAX_TURNS; i += 1) {
+    const dot = document.createElement('span');
+    dot.className = 'guess-dot is-on';
+    dot.setAttribute('aria-hidden', 'true');
+    guessDots.push(dot);
+    guessesLeftBadge.appendChild(dot);
+  }
+}
+
+function updateGuessesLeftBadge(turnsUsed) {
+  const left = Math.max(0, MAX_TURNS - turnsUsed);
+  guessDots.forEach((dot, idx) => {
+    dot.classList.toggle('is-on', idx < left);
+  });
+  guessesLeftBadge.setAttribute('aria-label', `${left} guesses left`);
+}
+
+function updateStatusBadges(hypothesesCount) {
+  updateBadges(turnBadge, hypothesisBadge, observations.length, hypothesesCount);
+  updateGuessesLeftBadge(observations.length);
+}
 
 renderLegend(legend);
 const cells = createBoard(boardGrid, handleCycleCell, handleHoverCell, handleHoverLeave);
 setGridLabels(cells);
-updateBadges(turnBadge, hypothesisBadge, observations.length, allHypotheses.length);
+initGuessesLeftBadge();
+updateStatusBadges(allHypotheses.length);
 modeBadge.textContent = 'Mode: score';
 renderHoverIndicatorEmpty(hoverIndicatorBody);
 
@@ -125,7 +152,7 @@ function rebuildFromObservations() {
   }
 
   recomputeCurrentHypotheses();
-  updateBadges(turnBadge, hypothesisBadge, observations.length, currentHypotheses.length);
+  updateStatusBadges(currentHypotheses.length);
 }
 
 function handleCycleCell(index, color) {
@@ -152,7 +179,7 @@ function handleCycleCell(index, color) {
   setCellState(cells, index, color);
   refreshBoardRecommendation([], []);
   recomputeCurrentHypotheses();
-  updateBadges(turnBadge, hypothesisBadge, observations.length, currentHypotheses.length);
+  updateStatusBadges(currentHypotheses.length);
 
   if (observations.length < MAX_TURNS) {
     hasRecordedCurrentRun = false;
@@ -217,7 +244,7 @@ function analyzeBoard() {
   const isFinalTurn = observations.length >= MAX_TURNS;
   recomputeCurrentHypotheses();
 
-  updateBadges(turnBadge, hypothesisBadge, observations.length, currentHypotheses.length);
+  updateStatusBadges(currentHypotheses.length);
 
   if (currentHypotheses.length === 0) {
     refreshBoardRecommendation(-1, -1);

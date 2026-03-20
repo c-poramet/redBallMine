@@ -122,15 +122,27 @@ body {
 
 .guesses-left-badge {
   margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: rgba(201, 127, 80, 0.1);
   border: 1px solid rgba(201, 127, 80, 0.2);
   border-radius: 6px;
-  padding: 3px 9px;
+  padding: 6px 9px;
+}
+
+.guess-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.guess-dot.is-on {
+  background: var(--accent);
+  border-color: rgba(201, 127, 80, 0.78);
+  box-shadow: 0 0 0 1px rgba(201, 127, 80, 0.2);
 }
 
 .icon-btn {
