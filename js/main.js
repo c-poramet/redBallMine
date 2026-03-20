@@ -339,8 +339,7 @@ document.addEventListener('click', (event) => {
 for (const input of modeInputs) {
   input.addEventListener('change', () => {
     if (!input.checked) return;
-    mode = input.value;
-    modeBadge.textContent = `Mode: ${mode === 'red' ? 'red hunt' : mode}`;
+    setMode(input.value);
   });
 }
 
@@ -417,7 +416,7 @@ function analyzeBoard() {
   });
 
   refreshBoardRecommendation(
-    bestCandidates.map((c) => c.index),
+    displayCandidates.map((c) => c.index),
     likelyRedGroup.indices,
   );
 }
