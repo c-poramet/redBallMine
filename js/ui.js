@@ -197,8 +197,6 @@ export function renderResults(resultsArea, analysis) {
 
       <div class="card">
         <h3 class="section-label">Most Likely Red Position</h3>
-        <div class="big-value">${likelyRed.coordinate}</div>
-        <p class="subtext">Posterior probability: <strong>${fmtPct(likelyRed.probability)}</strong></p>
         <div class="heatmap-grid">${buildHeatmap(likelyRed)}</div>
       </div>
 
