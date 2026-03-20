@@ -350,10 +350,6 @@ body {
   margin-top: 12px;
 }
 
-.hover-indicator .panel-title {
-  margin-bottom: 8px;
-}
-
 .hover-indicator-body {
   border: 1px solid var(--border-md);
   border-radius: 8px;
